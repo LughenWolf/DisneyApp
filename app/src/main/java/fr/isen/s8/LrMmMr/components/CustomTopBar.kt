@@ -2,6 +2,7 @@ package fr.isen.s8.LrMmMr.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -21,6 +22,12 @@ import androidx.compose.ui.unit.sp
 fun CustomTopBar(
     movieTitle: String,
     isConnected: Boolean,
+    // Nos 4 nouveaux états !
+    isWantToWatch: Boolean,
+    isWatched: Boolean,
+    isOwn: Boolean,
+    isWantToGetRidOf: Boolean,
+    // Les actions au clic
     onWantToWatchClick: () -> Unit = {},
     onWatchClick: () -> Unit = {},
     onOwnClick: () -> Unit = {},
@@ -33,35 +40,43 @@ fun CustomTopBar(
             .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text(
             text = movieTitle,
             color = Color.White,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 8.dp)
-
-                .weight(1f)
+            modifier = Modifier.padding(start = 8.dp).weight(1f)
         )
 
-
-
-
         if (isConnected) {
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onWantToWatchClick) {
-                    Icon(Icons.Filled.BookmarkBorder, contentDescription = "Want to watch", tint = Color.White)
+                    Icon(
+                        imageVector = if (isWantToWatch) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
+                        contentDescription = "Want to watch",
+                        tint = if (isWantToWatch) Color.White else Color.White.copy(alpha = 0.5f)
+                    )
                 }
                 IconButton(onClick = onWatchClick) {
-                    Icon(Icons.Filled.Check, contentDescription = "Watch", tint = Color.White)
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "Watch",
+                        tint = if (isWatched) Color.White else Color.White.copy(alpha = 0.5f)
+                    )
                 }
                 IconButton(onClick = onOwnClick) {
-                    Icon(Icons.Filled.Inventory, contentDescription = "Own", tint = Color.White)
+                    Icon(
+                        imageVector = Icons.Filled.Inventory,
+                        contentDescription = "Own",
+                        tint = if (isOwn) Color.White else Color.White.copy(alpha = 0.5f)
+                    )
                 }
                 IconButton(onClick = onDeleteClick) {
-                    Icon(Icons.Filled.Delete, contentDescription = "Want to get rid of", tint = Color.White)
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = "Want to get rid of",
+                        tint = if (isWantToGetRidOf) Color.White else Color.White.copy(alpha = 0.5f)
+                    )
                 }
             }
         }

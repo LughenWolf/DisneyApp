@@ -17,23 +17,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Le titre qu'on veut tester.
-        val selectedTitle = "Alien, le Huitième Passager"
+        val selectedTitle = "Deadpool"
         val myApiKey = "a4a738325f5cd022e712c9b94a94f34a"
-
-        // 1. On crée une variable pour simuler la connexion
         val isUserConnected = true
+
+        // NOTRE FAUX UID POUR TESTER
+        val mockUserUid = "test_user_12345"
 
         setContent {
             TheAmazingDisneyAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding)) {
 
-                        // 2. On n'oublie pas de passer l'état de connexion à l'écran !
                         DetailledMovieScreen(
                             movieTitle = selectedTitle,
                             apiKey = myApiKey,
-                            isConnected = isUserConnected
+                            isConnected = isUserConnected,
+                            userUid = mockUserUid // On passe l'UID ici !
                         )
                     }
                 }

@@ -37,15 +37,23 @@ import retrofit2.Response
 import fr.isen.s8.LrMmMr.components.GlassyCardTag
 import fr.isen.s8.LrMmMr.components.GlassyInfoCard
 import fr.isen.s8.LrMmMr.components.CustomTopBar
+import fr.isen.s8.LrMmMr.managers.UserMovieManager
 
 @Composable
-fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolean) {
+fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolean, userUid: String) {
     var movieDetails by remember { mutableStateOf<Movie?>(null) }
     var tmdbImageUrl by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
+
+    var isWantToWatch by remember { mutableStateOf(false) }
+    var isWatched by remember { mutableStateOf(false) }
+    var isOwn by remember { mutableStateOf(false) }
+    var isWantToGetRidOf by remember { mutableStateOf(false) }
+
     LaunchedEffect(movieTitle) {
         val database = Firebase.database.reference.child("categories")
+
 
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
@@ -73,6 +81,17 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
         }.addOnFailureListener {
             isLoading = false
         }
+
+        // 2. Si l'utilisateur est connecté, on vérifie l'état de ses listes dans Firebase
+        if (isConnected && userUid.isNotEmpty()) {
+            val userRef = Firebase.database.reference.child("users").child(userUid)
+
+            // On regarde si le noeud avec le nom du film existe dans chaque catégorie
+            userRef.child("wantToWatch").child(movieTitle).get().addOnSuccessListener { isWantToWatch = it.exists() }
+            userRef.child("watched").child(movieTitle).get().addOnSuccessListener { isWatched = it.exists() }
+            userRef.child("own").child(movieTitle).get().addOnSuccessListener { isOwn = it.exists() }
+            userRef.child("wantToGetRidOf").child(movieTitle).get().addOnSuccessListener { isWantToGetRidOf = it.exists() }
+        }
     }
 
     Box(
@@ -85,10 +104,29 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
             CustomTopBar(
                 movieTitle = movieTitle,
                 isConnected = isConnected,
-                onWantToWatchClick = { },
-                onWatchClick = { },
-                onOwnClick = { },
-                onDeleteClick = { }
+                // On passe les variables d'état pour l'affichage visuel
+                isWantToWatch = isWantToWatch,
+                isWatched = isWatched,
+                isOwn = isOwn,
+                isWantToGetRidOf = isWantToGetRidOf,
+
+                // Au clic, on inverse la valeur locale ET on met à jour Firebase
+                onWantToWatchClick = {
+                    isWantToWatch = !isWantToWatch
+                    UserMovieManager.toggleMovieStatus(userUid, movieTitle, "wantToWatch", isWantToWatch)
+                },
+                onWatchClick = {
+                    isWatched = !isWatched
+                    UserMovieManager.toggleMovieStatus(userUid, movieTitle, "watched", isWatched)
+                },
+                onOwnClick = {
+                    isOwn = !isOwn
+                    UserMovieManager.toggleMovieStatus(userUid, movieTitle, "own", isOwn)
+                },
+                onDeleteClick = {
+                    isWantToGetRidOf = !isWantToGetRidOf
+                    UserMovieManager.toggleMovieStatus(userUid, movieTitle, "wantToGetRidOf", isWantToGetRidOf)
+                }
             )
 
             Box(modifier = Modifier.fillMaxSize()) {
@@ -104,7 +142,7 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
     }
 }
 
-private fun findMovieInCategories(categories: List<FirebaseCategory>, title: String): Movie? {
+fun findMovieInCategories(categories: List<FirebaseCategory>, title: String): Movie? {
     for (cat in categories) {
         for (fran in cat.franchises) {
             fran.films?.find { it.titre.equals(title, ignoreCase = true) }?.let {
