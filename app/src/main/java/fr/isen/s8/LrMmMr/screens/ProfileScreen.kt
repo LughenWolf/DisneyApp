@@ -1,6 +1,7 @@
 package fr.isen.s8.LrMmMr.screens
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,14 +13,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import fr.isen.s8.LrMmMr.AuthActivity
+import fr.isen.s8.LrMmMr.R
+import fr.isen.s8.LrMmMr.components.GlassyCardTag
 import fr.isen.s8.LrMmMr.models.AppBarState
 
 @Composable
@@ -38,23 +43,31 @@ fun ProfileScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = if (currentUser == null) Arrangement.Center else Arrangement.Top
     ) {
         if (currentUser == null) {
             Text(
-                text = "Sorry, we don't know you (yet)",
+                text = "No account connected.",
                 fontSize = 18.sp,
+                color = colorResource(R.color.baby_blue_ice),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = {
-                val intent = Intent(context, AuthActivity::class.java)
-                context.startActivity(intent)
-            }) {
-                Text("Login / Register")
+
+            Button(
+                onClick = {
+                    val intent = Intent(context, AuthActivity::class.java)
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent
+                ),
+                elevation = null,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                GlassyCardTag("Login / Register")
             }
         } else {
             ProfileContent(

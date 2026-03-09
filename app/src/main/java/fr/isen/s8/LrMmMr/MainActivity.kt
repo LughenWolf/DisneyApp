@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -20,12 +21,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -70,34 +74,48 @@ class MainActivity : ComponentActivity() {
             val tabItems = listOf(movieItem, categoryItem, profileItem)
 
             TheAmazingDisneyAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize(),
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
                     bottomBar = { BottomAppBar(tabItems, navController) }
                 ) { innerPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = movieItem.title,
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable(movieItem.title) { EmptyScreen("Movies Screen") }
-                        composable(categoryItem.title) { EmptyScreen("Categories Screen") }
-                        composable(profileItem.title) {
-                            ProfileScreen(
-                                onComposing = { appBarState.value = it }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        colorResource(id = R.color.egyptian_blue),
+                                        colorResource(id = R.color.baby_blue_ice)
+                                    )
+                                )
                             )
+                    ) {
+                        NavHost(
+                            navController = navController,
+                            startDestination = movieItem.title
+                        ) {
+                            composable(movieItem.title) { EmptyScreen("Movies Screen") }
+                            composable(categoryItem.title) { EmptyScreen("Categories Screen") }
+                            composable(profileItem.title) {
+                                ProfileScreen(
+                                    onComposing = { appBarState.value = it }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 
-@Composable
-fun EmptyScreen(text: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = text)
-    }
-}
+                @Composable
+                fun EmptyScreen(text: String) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = text)
+                    }
+                }
+            }
