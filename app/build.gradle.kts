@@ -49,6 +49,7 @@ dependencies {
     // Dépendance pour l'authentification
     implementation("com.google.firebase:firebase-auth")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc01")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
