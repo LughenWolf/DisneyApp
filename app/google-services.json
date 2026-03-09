@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "651565881344",
+    "firebase_url": "https://disney-a75f3-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "disney-a75f3",
+    "storage_bucket": "disney-a75f3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651565881344:android:704bbc9fd98c3f1892a0e5",
+        "android_client_info": {
+          "package_name": "fr.isen.s8.LrMmMr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKVj4YV7PSYPihH-2DVwLlSLF7-ZtHcCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:651565881344:android:387a54d35d7faaac92a0e5",
+        "android_client_info": {
+          "package_name": "isen.s8.disney"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKVj4YV7PSYPihH-2DVwLlSLF7-ZtHcCk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

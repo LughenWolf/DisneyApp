@@ -11,10 +11,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.firebase.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.database
 import fr.isen.s8.LrMmMr.ui.theme.TheAmazingDisneyAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val database= Firebase.database
+        val myRef=database.getReference("categories")
+        myRef.addListenerForSingleValueEvent(object :valueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+        })
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
