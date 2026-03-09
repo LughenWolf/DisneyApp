@@ -1,146 +1,177 @@
 package fr.isen.s8.LrMmMr.screens
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+
+import com.google.firebase.Firebase
+import com.google.firebase.database.database // Pour le .database
+import com.google.firebase.database.getValue
+import fr.isen.s8.LrMmMr.R
+import fr.isen.s8.LrMmMr.models.Movies.Movie
+import fr.isen.s8.LrMmMr.models.FirebaseCategory
+import fr.isen.s8.LrMmMr.network.ApiClient
+import fr.isen.s8.LrMmMr.dataClasses.MovieSearchResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import fr.isen.s8.LrMmMr.components.GlassyCardTag
+import fr.isen.s8.LrMmMr.components.GlassyInfoCard
+
+
+
 
 @Composable
-fun DetailledMovie(modifier: Modifier){
+fun DetailledMovieScreen(movieTitle: String, apiKey: String) {
+    var movieDetails by remember { mutableStateOf<Movie?>(null) }
+    var tmdbImageUrl by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+
+    LaunchedEffect(movieTitle) {
+        val database = Firebase.database.reference.child("categories")
+
+
+        database.get().addOnSuccessListener { snapshot ->
+            val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
+            val found = findMovieInCategories(categories, movieTitle)
+
+            if (found != null) {
+                movieDetails = found
+
+
+                ApiClient.retrofit.searchMovie(apiKey = apiKey, query = movieTitle)
+                    .enqueue(object : Callback<MovieSearchResponse> {
+                        override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
+                            val path = response.body()?.results?.firstOrNull()?.posterPath
+                            if (path != null) {
+                                tmdbImageUrl = "https://image.tmdb.org/t/p/w500$path"
+                            }
+                            isLoading = false
+                        }
+                        override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
+                            isLoading = false
+                        }
+                    })
+            } else {
+                isLoading = false
+            }
+        }.addOnFailureListener {
+            isLoading = false
+        }
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    } else if (movieDetails != null) {
+
+        DetailledMovie(movie = movieDetails!!.copy(imageUrl = tmdbImageUrl ?: ""), apiKey = apiKey)
+    } else {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Film introuvable", color = Color.White)
+        }
+    }
+}
+
+
+private fun findMovieInCategories(categories: List<FirebaseCategory>, title: String): Movie? {
+    for (cat in categories) {
+        for (fran in cat.franchises) {
+            // Vérifier les films directs (ex: Indiana Jones)
+            fran.films?.find { it.titre.equals(title, ignoreCase = true) }?.let {
+                return Movie(it.titre, "", it.genre, it.annee.toString(), cat.categorie, fran.nom, "N° ${it.numero}")
+            }
+            // Vérifier les sous-sagas (ex: Marvel Phase 1)
+            fran.sous_sagas?.forEach { saga ->
+                saga.films.find { it.titre.equals(title, ignoreCase = true) }?.let {
+                    return Movie(it.titre, "", it.genre, it.annee.toString(), fran.nom, saga.nom, "N° ${it.numero}")
+                }
+            }
+        }
+    }
+    return null
+}
+
+
+
+
+
+@Composable
+fun DetailledMovie(movie: Movie, modifier: Modifier = Modifier, apiKey: String) {
     Box(
-        Modifier.background(
-            brush = Brush.verticalGradient(
-                listOf(
-                    colorResource(R.color.purple_500),
-                    colorResource(R.color.purple_700)
-                )
-            ))
-            .fillMaxSize()) {
+        modifier = Modifier
+            .background(brush = Brush.verticalGradient(listOf(colorResource(R.color.egyptian_blue), colorResource(R.color.glaucous))))
+            .fillMaxSize()
+    ) {
         Column(
-            modifier = modifier.fillMaxWidth()
+            modifier = modifier
+                .fillMaxWidth()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState())
-            ,
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             AsyncImage(
-                model = drink.strDrinkThumb,
-                "",
+                model = movie.imageUrl,
+                contentDescription = "Affiche du film ${movie.title}",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .width(200.dp)
-                    .height(200.dp)
-                    .clip(CircleShape)
-                    .border(
-                        1.dp,
-                        colorResource(R.color.teal_200),
-                        CircleShape
-                    )
+                    .height(300.dp)
+                    .padding(top = 16.dp)
+                    .shadow(8.dp, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp))
             )
 
-
             Text(
-                text = drink.strDrink ?: "",
+                text = movie.title,
                 fontSize = 40.sp,
                 lineHeight = 48.sp,
+                fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center,
                 color = colorResource(R.color.white)
             )
 
             Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(top = 8.dp)
             ) {
-                drink.strCategory?.let { CategoryView(text = it, catogory = Category.OTHER) }
-                drink.strAlcoholic?.let { CategoryView(text = it, catogory = Category.NON_ALCOHOLIC) }
+                GlassyCardTag(text = movie.genre)
+                GlassyCardTag(text = movie.year)
+                GlassyCardTag(text = movie.number)
             }
 
-            Text(
-                drink.strGlass ?: "Unknown glass",
-                color = colorResource(R.color.grey)
-            )
-
-            Card() {
-                Column(
-                    Modifier.padding(16.dp)
-                        .fillMaxWidth()) {
-                    Text(stringResource(R.string.ingredient),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold)
-
-                    drink.ingredientList().forEach { (ingredient, measure) ->
-                        Text("$measure $ingredient".trim())
-                    }
-                }
-            }
-
-            Card() {
-                Column(
-                    Modifier.padding(16.dp)
-                        .fillMaxWidth()) {
-                    Text(stringResource(R.string.preparation),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold)
-
-                    Text(drink.strInstructions ?: "")
-                }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                GlassyInfoCard(label = "Univers", value = movie.universe)
+                GlassyInfoCard(label = "Saga", value = movie.saga)
             }
         }
     }
-}
-
-@Composable
-fun DetailCocktailTopButton(drink: Drink?) {
-    val context = LocalContext.current
-    val favoritesManager = FavoritesManager()
-    drink?.let { drink ->
-        var isFavorites = remember {
-            mutableStateOf<Boolean>(favoritesManager.isFavorite(drink, context))
-        }
-
-        IconButton({
-            favoritesManager.toggleFavorite(drink, context)
-            isFavorites.value = favoritesManager.isFavorite(drink, context)
-        }) {
-            Icon(
-                imageVector = if (isFavorites.value) {
-                    Icons.Filled.Favorite
-                } else {
-                    Icons.Filled.FavoriteBorder
-                },
-                contentDescription = "Localized description"
-            )
-        }
-    }
-}
 }
