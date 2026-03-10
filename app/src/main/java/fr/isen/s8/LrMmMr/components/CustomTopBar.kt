@@ -22,12 +22,12 @@ import androidx.compose.ui.unit.sp
 fun CustomTopBar(
     movieTitle: String,
     isConnected: Boolean,
-    // Nos 4 nouveaux états !
+
     isWantToWatch: Boolean,
     isWatched: Boolean,
     isOwn: Boolean,
     isWantToGetRidOf: Boolean,
-    // Les actions au clic
+
     onWantToWatchClick: () -> Unit = {},
     onWatchClick: () -> Unit = {},
     onOwnClick: () -> Unit = {},

@@ -82,11 +82,11 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
             isLoading = false
         }
 
-        // 2. Si l'utilisateur est connecté, on vérifie l'état de ses listes dans Firebase
+
         if (isConnected && userUid.isNotEmpty()) {
             val userRef = Firebase.database.reference.child("users").child(userUid)
 
-            // On regarde si le noeud avec le nom du film existe dans chaque catégorie
+
             userRef.child("wantToWatch").child(movieTitle).get().addOnSuccessListener { isWantToWatch = it.exists() }
             userRef.child("watched").child(movieTitle).get().addOnSuccessListener { isWatched = it.exists() }
             userRef.child("own").child(movieTitle).get().addOnSuccessListener { isOwn = it.exists() }
@@ -104,13 +104,13 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
             CustomTopBar(
                 movieTitle = movieTitle,
                 isConnected = isConnected,
-                // On passe les variables d'état pour l'affichage visuel
+
                 isWantToWatch = isWantToWatch,
                 isWatched = isWatched,
                 isOwn = isOwn,
                 isWantToGetRidOf = isWantToGetRidOf,
 
-                // Au clic, on inverse la valeur locale ET on met à jour Firebase
+
                 onWantToWatchClick = {
                     isWantToWatch = !isWantToWatch
                     UserMovieManager.toggleMovieStatus(userUid, movieTitle, "wantToWatch", isWantToWatch)
