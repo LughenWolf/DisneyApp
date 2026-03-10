@@ -46,9 +46,18 @@ data class TabBarItem(
 )
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val selectedTitle = "Deadpool"
+        val myApiKey = "a4a738325f5cd022e712c9b94a94f34a"
+        val isUserConnected = true
+
+        // NOTRE FAUX UID POUR TESTER
+        val mockUserUid = "test_user_12345"
+
         setContent {
             val context = LocalContext.current
             val navController = rememberNavController()
