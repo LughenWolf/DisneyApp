@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import fr.isen.s8.LrMmMr.screens.DetailledMovieScreen
 import fr.isen.s8.LrMmMr.ui.theme.TheAmazingDisneyAppTheme
 
-class DetailledMovieActivity : ComponentActivity() {
+class  DetailledMovieActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
