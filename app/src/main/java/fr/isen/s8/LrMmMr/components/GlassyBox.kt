@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+
 import fr.isen.s8.LrMmMr.R
 import fr.isen.s8.LrMmMr.models.Movies.Movie
 
@@ -59,6 +59,23 @@ fun GlassyInfoCard(label: String, value: String) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = label, fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f))
+            Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+@Composable
+fun GlassyCard(value: String) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.15f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
         }
     }
