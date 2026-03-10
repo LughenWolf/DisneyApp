@@ -23,4 +23,3 @@ data class FirebaseFilm(
     val genre: String = "",
     val numero: Int = 0
 )
-
