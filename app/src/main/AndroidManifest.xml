@@ -13,6 +13,8 @@
         android:theme="@style/Theme.TheAmazingDisneyApp">
         <activity
             android:name=".AuthActivity"
+            android:exported="false" />
+        <activity
             android:name=".DetailledMovieActivity"
             android:exported="false" />
         <activity
