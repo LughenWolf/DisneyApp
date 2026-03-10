@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                                 brush = Brush.verticalGradient(
                                     colors = listOf(
                                         colorResource(id = R.color.egyptian_blue),
-                                        colorResource(id = R.color.baby_blue_ice)
+                                        colorResource(id = R.color.glaucous)
                                     )
                                 )
                             )

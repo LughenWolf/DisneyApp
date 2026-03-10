@@ -48,7 +48,7 @@ fun AuthScreen(
                 brush = Brush.verticalGradient(
                     listOf(
                         colorResource(R.color.egyptian_blue),
-                        colorResource(R.color.claucous)
+                        colorResource(R.color.glaucous)
                     )
                 )
             )
