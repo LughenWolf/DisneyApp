@@ -34,7 +34,7 @@ fun SearchGlassField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(68.dp)
+            .height(48.dp)
             .clip(RoundedCornerShape(34.dp))
             .background(
                 brush = Brush.linearGradient(
