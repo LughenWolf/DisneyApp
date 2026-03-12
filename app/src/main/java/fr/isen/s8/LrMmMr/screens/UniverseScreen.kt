@@ -50,7 +50,7 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
                 brush = Brush.verticalGradient(
                     colors = listOf(
                         colorResource(R.color.egyptian_blue),
-                        colorResource(R.color.claucous)
+                        colorResource(R.color.glaucous)
                     )
                 )
             ),

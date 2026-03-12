@@ -1,5 +1,6 @@
 package fr.isen.s8.LrMmMr
 
+import android.content.Intent // <-- Nouvel import indispensable pour lancer l'activité
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -38,6 +40,7 @@ import fr.isen.s8.LrMmMr.models.AppBarState
 import fr.isen.s8.LrMmMr.screens.BottomAppBar
 import fr.isen.s8.LrMmMr.screens.ProfileScreen
 import fr.isen.s8.LrMmMr.ui.theme.TheAmazingDisneyAppTheme
+import fr.isen.s8.LrMmMr.screens.AllMoviesScreen
 
 data class TabBarItem(
     val title: String,
@@ -55,8 +58,7 @@ class MainActivity : ComponentActivity() {
         val myApiKey = "a4a738325f5cd022e712c9b94a94f34a"
         val isUserConnected = true
 
-        // NOTRE FAUX UID POUR TESTER
-        val mockUserUid = "test_user_12345"
+
 
         setContent {
             val context = LocalContext.current
@@ -104,7 +106,22 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = movieItem.title
                         ) {
-                            composable(movieItem.title) { EmptyScreen("Movies Screen") }
+                            // --- C'EST ICI QUE TOUT SE PASSE ---
+                            composable(movieItem.title) {
+                                AllMoviesScreen(
+                                    apiKey = myApiKey,
+                                    onMovieClick = { clickedMovieTitle ->
+                                        // On prépare l'Intent vers la DetailledMovieActivity
+                                        val intent = Intent(context, DetailledMovieActivity::class.java).apply {
+                                            putExtra("MOVIE_TITLE", clickedMovieTitle)
+                                        }
+                                        // On lance l'activité
+                                        context.startActivity(intent)
+                                    }
+                                )
+                            }
+                            // ------------------------------------
+
                             composable(categoryItem.title) { EmptyScreen("Categories Screen") }
                             composable(profileItem.title) {
                                 ProfileScreen(
@@ -118,13 +135,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-                @Composable
-                fun EmptyScreen(text: String) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = text)
-                    }
-                }
-            }
+    @Composable
+    fun EmptyScreen(text: String) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = text)
+        }
+    }
+}

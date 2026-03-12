@@ -9,10 +9,6 @@ lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.4"
 composeBom = "2024.09.00"
 navigationCompose = "2.9.7"
-appcompat = "1.6.1"
-material = "1.10.0"
-activity = "1.12.4"
-constraintlayout = "2.1.4"
 runtime = "1.10.4"
 googleGmsGoogleServices = "4.4.4"
 firebaseDatabase = "22.0.1"
@@ -49,4 +45,3 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
-

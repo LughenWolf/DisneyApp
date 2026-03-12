@@ -2,6 +2,7 @@ package fr.isen.s8.LrMmMr.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
@@ -28,6 +29,8 @@ fun CustomTopBar(
     isOwn: Boolean,
     isWantToGetRidOf: Boolean,
 
+    onBackClick: () -> Unit = {},
+
     onWantToWatchClick: () -> Unit = {},
     onWatchClick: () -> Unit = {},
     onOwnClick: () -> Unit = {},
@@ -36,10 +39,20 @@ fun CustomTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .statusBarsPadding()
             .heightIn(min = 56.dp)
             .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+
+        IconButton(onClick = onBackClick) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Retourner à la liste",
+                tint = Color.White
+            )
+        }
+
         Text(
             text = movieTitle,
             color = Color.White,
@@ -50,6 +63,8 @@ fun CustomTopBar(
 
         if (isConnected) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+
+                // Bouton Want to watch
                 IconButton(onClick = onWantToWatchClick) {
                     Icon(
                         imageVector = if (isWantToWatch) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder,
@@ -57,13 +72,25 @@ fun CustomTopBar(
                         tint = if (isWantToWatch) Color.White else Color.White.copy(alpha = 0.5f)
                     )
                 }
-                IconButton(onClick = onWatchClick) {
+
+                // Bouton Watched
+                IconButton(onClick = {
+                    onWatchClick() // On ajoute/retire de la liste des films vus
+
+                    // Si on vient de marquer le film comme vu ET qu'il était dans "à voir",
+                    // on déclenche le clic sur "à voir" pour l'enlever de cette liste.
+                    if (!isWatched && isWantToWatch) {
+                        onWantToWatchClick()
+                    }
+                }) {
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = "Watch",
                         tint = if (isWatched) Color.White else Color.White.copy(alpha = 0.5f)
                     )
                 }
+
+                // Bouton Own
                 IconButton(onClick = onOwnClick) {
                     Icon(
                         imageVector = Icons.Filled.Inventory,
@@ -71,13 +98,18 @@ fun CustomTopBar(
                         tint = if (isOwn) Color.White else Color.White.copy(alpha = 0.5f)
                     )
                 }
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = "Want to get rid of",
-                        tint = if (isWantToGetRidOf) Color.White else Color.White.copy(alpha = 0.5f)
-                    )
+
+                // Bouton Delete (uniquement si possédé)
+                if (isOwn) {
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Want to get rid of",
+                            tint = if (isWantToGetRidOf) Color.White else Color.White.copy(alpha = 0.5f)
+                        )
+                    }
                 }
+
             }
         }
     }
