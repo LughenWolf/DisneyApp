@@ -34,11 +34,12 @@ import retrofit2.Response
 @Composable
 fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) -> Unit = {}) {
     var franchises by remember { mutableStateOf<List<FirebaseFranchise>>(emptyList()) }
+    var searchQuery by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
     val franchiseImages = remember { mutableStateMapOf<String, String>() }
-    val apiKey = "a4a738325f5cd022e712c9b94a94f34a" // Utilisation de votre clé TMDB
+    val apiKey = "a4a738325f5cd022e712c9b94a94f34a"
 
     LaunchedEffect(Unit) {
         onComposing(AppBarState("Univers Disney"))
@@ -68,6 +69,14 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
         }
     }
 
+    val filteredFranchises = remember(searchQuery, franchises) {
+        if (searchQuery.isEmpty()) {
+            franchises
+        } else {
+            franchises.filter { it.nom.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -82,6 +91,8 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             SearchGlassField(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 placeholder = "Rechercher un film..."
             )
@@ -95,10 +106,18 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(franchises) { franchise ->
+                    items(filteredFranchises) { franchise ->
+                        var posterUrl by remember(franchise.nom) { mutableStateOf<String?>(null) }
+
+                        LaunchedEffect(franchise.nom) {
+                            fetchFranchiseImage(franchise.nom, apiKey) { url ->
+                                posterUrl = url
+                            }
+                        }
+
                         ImageBannerCard(
                             title = franchise.nom.uppercase(),
-                            imageUrl = franchiseImages[franchise.nom],
+                            imageUrl = posterUrl,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 val validSagas = franchise.sous_sagas?.filter { it.films.isNotEmpty() } ?: emptyList()
@@ -138,7 +157,6 @@ fun fetchFranchiseImage(query: String, apiKey: String, onResult: (String) -> Uni
                 }
             }
             override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
-                // Erreur ignorée, l'image par défaut sera utilisée
             }
         })
 }
