@@ -27,6 +27,7 @@ import fr.isen.s8.LrMmMr.models.Movies.Movie
 @Composable
 fun SagaMoviesScreen(
     sagaName: String,
+    franchiseName: String,
     apiKey: String,
     onBackClick: () -> Unit,
     onMovieClick: (String) -> Unit
