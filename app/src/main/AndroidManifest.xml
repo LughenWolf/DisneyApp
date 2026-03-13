@@ -25,6 +25,11 @@
         <activity
             android:name=".CategoriesActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".SagaMoviesActivity"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

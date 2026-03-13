@@ -1,5 +1,6 @@
 package fr.isen.s8.LrMmMr.screens
 
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,16 +11,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import com.google.firebase.database.getValue
+import fr.isen.s8.LrMmMr.SagaMoviesActivity
 import fr.isen.s8.LrMmMr.components.ImageBannerCard
 import fr.isen.s8.LrMmMr.models.FirebaseCategory
 import fr.isen.s8.LrMmMr.models.FirebaseFranchise
-import fr.isen.s8.LrMmMr.models.FirebaseSousSaga
 
 @Composable
 fun CategoriesScreen(franchiseName: String) {
@@ -27,6 +29,7 @@ fun CategoriesScreen(franchiseName: String) {
     var isLoading by remember { mutableStateOf(true) }
     val franchiseImages = remember { mutableStateMapOf<String, String>() }
     val apiKey = "a4a738325f5cd022e712c9b94a94f34a"
+    val context = LocalContext.current
 
     LaunchedEffect(franchiseName) {
         val database = Firebase.database.reference.child("categories")
@@ -37,14 +40,11 @@ fun CategoriesScreen(franchiseName: String) {
             franchiseData = foundFranchise
             isLoading = false
 
-            // On cherche des images pour les sous-sagas
             foundFranchise?.sous_sagas?.forEach { saga ->
                 fetchFranchiseImage(saga.nom, apiKey) { url ->
                     franchiseImages[saga.nom] = url
                 }
             }
-            // Si pas de sous-sagas mais des films, on peut aussi chercher des images pour les films?
-            // Le user a demandé les sous-sagas explicitement.
         }.addOnFailureListener {
             isLoading = false
         }
@@ -81,7 +81,10 @@ fun CategoriesScreen(franchiseName: String) {
                             imageUrl = franchiseImages[saga.nom],
                             modifier = Modifier.fillMaxWidth(),
                             onClick = { 
-                                // Action au clic sur une sous-saga (ex: voir les films)
+                                val intent = Intent(context, SagaMoviesActivity::class.java).apply {
+                                    putExtra("SAGA_NAME", saga.nom)
+                                }
+                                context.startActivity(intent)
                             }
                         )
                     }
