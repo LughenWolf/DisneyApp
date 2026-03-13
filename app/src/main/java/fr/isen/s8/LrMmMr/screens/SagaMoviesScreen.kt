@@ -89,6 +89,7 @@ fun SagaMoviesScreen(sagaName: String, apiKey: String, onMovieClick: (String) ->
                         MovieGridItem(
                             movie = movie,
                             apiKey = apiKey,
+                            imageCache = mutableMapOf<String, String?>(),
                             onClick = { onMovieClick(movie.title) }
                         )
                     }
