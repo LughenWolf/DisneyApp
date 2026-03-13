@@ -26,6 +26,7 @@ class SagaMoviesActivity : ComponentActivity() {
                     SagaMoviesScreen(
                         sagaName = sagaName,
                         apiKey = apiKey,
+                        onBackClick = { finish() },
                         onMovieClick = { movieTitle ->
                             val intent = Intent(this, DetailledMovieActivity::class.java).apply {
                                 putExtra("MOVIE_TITLE", movieTitle)
