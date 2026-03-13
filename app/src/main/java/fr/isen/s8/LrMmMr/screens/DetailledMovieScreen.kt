@@ -3,6 +3,7 @@ package fr.isen.s8.LrMmMr.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +43,9 @@ import fr.isen.s8.LrMmMr.components.GlassyInfoCard
 import fr.isen.s8.LrMmMr.components.CustomTopBar
 import fr.isen.s8.LrMmMr.managers.UserMovieManager
 
+// NOUVEAU : Petite classe pour stocker les deux infos
+data class UserContact(val username: String, val email: String)
+
 @Composable
 fun DetailledMovieScreen(
     movieTitle: String,
@@ -52,7 +56,7 @@ fun DetailledMovieScreen(
 ) {
     var movieDetails by remember { mutableStateOf<Movie?>(null) }
     var tmdbImageUrl by remember { mutableStateOf<String?>(null) }
-    var trailerUrl by remember { mutableStateOf<String?>(null) } // <-- État pour le trailer
+    var trailerUrl by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
     var isWantToWatch by remember { mutableStateOf(false) }
@@ -60,8 +64,8 @@ fun DetailledMovieScreen(
     var isOwn by remember { mutableStateOf(false) }
     var isWantToGetRidOf by remember { mutableStateOf(false) }
 
-    var ownersEmails by remember { mutableStateOf<List<String>>(emptyList()) }
-    var sellersEmails by remember { mutableStateOf<List<String>>(emptyList()) }
+    var owners by remember { mutableStateOf<List<UserContact>>(emptyList()) }
+    var sellers by remember { mutableStateOf<List<UserContact>>(emptyList()) }
 
     LaunchedEffect(movieTitle) {
         val database = Firebase.database.reference.child("categories")
@@ -82,16 +86,13 @@ fun DetailledMovieScreen(
                                 tmdbImageUrl = "https://image.tmdb.org/t/p/w500${result.posterPath}"
                             }
 
-                            // --- REQUÊTE POUR LE TRAILER ---
                             if (result?.id != null) {
                                 ApiClient.retrofit.getMovieVideos(movieId = result.id, apiKey = apiKey)
                                     .enqueue(object : Callback<VideoResponse> {
                                         override fun onResponse(call: Call<VideoResponse>, videoResponse: Response<VideoResponse>) {
-                                            // On cherche une vidéo Youtube de type "Trailer"
                                             val trailer = videoResponse.body()?.results?.firstOrNull {
                                                 it.site.equals("YouTube", ignoreCase = true) && it.type.equals("Trailer", ignoreCase = true)
                                             } ?: videoResponse.body()?.results?.firstOrNull {
-                                                // Secours : n'importe quelle vidéo Youtube si pas de tag "Trailer"
                                                 it.site.equals("YouTube", ignoreCase = true)
                                             }
 
@@ -131,26 +132,29 @@ fun DetailledMovieScreen(
 
         val allUsersRef = Firebase.database.reference.child("users")
         allUsersRef.get().addOnSuccessListener { snapshot ->
-            val ownersList = mutableListOf<String>()
-            val sellersList = mutableListOf<String>()
+            val ownersList = mutableListOf<UserContact>()
+            val sellersList = mutableListOf<UserContact>()
 
             for (userSnapshot in snapshot.children) {
                 val ownsMovie = userSnapshot.child("own").child(movieTitle).exists()
                 val wantsToGetRidOfMovie = userSnapshot.child("wantToGetRidOf").child(movieTitle).exists()
 
                 if (ownsMovie && userSnapshot.key != userUid) {
-                    val email = userSnapshot.child("email").getValue(String::class.java)
+                    val email = userSnapshot.child("email").getValue(String::class.java) ?: "Email inconnu"
+                    val username = userSnapshot.child("username").getValue(String::class.java)
                         ?: "Membre mystère (ID: ${userSnapshot.key?.take(5)}...)"
 
+                    val contact = UserContact(username, email)
+
                     if (wantsToGetRidOfMovie) {
-                        sellersList.add(email)
+                        sellersList.add(contact)
                     } else {
-                        ownersList.add(email)
+                        ownersList.add(contact)
                     }
                 }
             }
-            ownersEmails = ownersList
-            sellersEmails = sellersList
+            owners = ownersList
+            sellers = sellersList
         }
     }
 
@@ -197,9 +201,9 @@ fun DetailledMovieScreen(
                 } else if (movieDetails != null) {
                     DetailledMovie(
                         movie = movieDetails!!.copy(imageUrl = tmdbImageUrl ?: ""),
-                        trailerUrl = trailerUrl, // <-- Passage du lien
-                        ownersEmails = ownersEmails,
-                        sellersEmails = sellersEmails
+                        trailerUrl = trailerUrl,
+                        owners = owners,
+                        sellers = sellers
                     )
                 } else {
                     Text("Film introuvable", color = Color.White, modifier = Modifier.align(Alignment.Center))
@@ -230,10 +234,92 @@ fun DetailledMovie(
     movie: Movie,
     modifier: Modifier = Modifier,
     trailerUrl: String?,
-    ownersEmails: List<String> = emptyList(),
-    sellersEmails: List<String> = emptyList()
+    owners: List<UserContact> = emptyList(),
+    sellers: List<UserContact> = emptyList()
 ) {
-    val context = LocalContext.current // <-- Contexte pour lancer Youtube
+    val context = LocalContext.current
+
+    var selectedUser by remember { mutableStateOf<UserContact?>(null) }
+
+    // LE NOUVEAU POP-UP BEAUCOUP PLUS CLAIR ET LISIBLE
+    if (selectedUser != null) {
+        AlertDialog(
+            onDismissRequest = { selectedUser = null },
+            containerColor = colorResource(R.color.egyptian_blue), // Fond foncé
+            titleContentColor = colorResource(R.color.baby_blue_ice),
+            textContentColor = Color.White,
+            shape = RoundedCornerShape(24.dp), // Bords bien arrondis
+            title = {
+                Text(
+                    text = "✨ Contact Info",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "PSEUDO",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.pale_sky),
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = selectedUser!!.username,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                    }
+
+                    // Une petite ligne de séparation discrète
+                    HorizontalDivider(
+                        modifier = Modifier.width(100.dp),
+                        thickness = 1.dp,
+                        color = Color.White.copy(alpha = 0.2f)
+                    )
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "EMAIL",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorResource(R.color.pale_sky),
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = selectedUser!!.email,
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { selectedUser = null },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colorResource(R.color.baby_blue_ice),
+                        contentColor = colorResource(R.color.egyptian_blue)
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Fermer", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
+            }
+        )
+    }
 
     Column(
         modifier = modifier
@@ -255,7 +341,6 @@ fun DetailledMovie(
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // --- BOUTON TRAILER ---
         if (trailerUrl != null) {
             Button(
                 onClick = {
@@ -271,7 +356,6 @@ fun DetailledMovie(
                 Text("Voir le Trailer", color = colorResource(R.color.egyptian_blue), fontWeight = FontWeight.Bold)
             }
         }
-        // -----------------------
 
         Text(
             text = movie.title,
@@ -299,7 +383,7 @@ fun DetailledMovie(
             GlassyInfoCard(label = "Saga", value = movie.saga)
         }
 
-        if (ownersEmails.isNotEmpty()) {
+        if (owners.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Ils l'ont dans leur collection :",
@@ -309,12 +393,19 @@ fun DetailledMovie(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            ownersEmails.forEach { email ->
-                GlassyInfoCard(label = "Membre", value = email)
+            owners.forEach { contact ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { selectedUser = contact }
+                ) {
+                    GlassyInfoCard(label = "Membre", value = contact.username)
+                }
             }
         }
 
-        if (sellersEmails.isNotEmpty()) {
+        if (sellers.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Ils veulent s'en débarrasser :",
@@ -324,8 +415,15 @@ fun DetailledMovie(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
-            sellersEmails.forEach { email ->
-                GlassyInfoCard(label = "Contact", value = email)
+            sellers.forEach { contact ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { selectedUser = contact }
+                ) {
+                    GlassyInfoCard(label = "Contact", value = contact.username)
+                }
             }
         }
 

@@ -32,12 +32,12 @@ fun AuthScreen(
 ) {
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
+
+    var username by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isRegistering by remember { mutableStateOf(false) }
 
-    // Remplacer par l'ID de ta police si ajoutée dans res/font
-    // val disneyFont = FontFamily(Font(R.font.disney_font))
     val disneyStyle = FontFamily.Cursive
 
     Box(
@@ -105,7 +105,23 @@ fun AuthScreen(
 
                     Spacer(Modifier.height(24.dp))
 
-                    // Champ Email
+                    if (isRegistering) {
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            label = { Text("Username", color = colorResource(R.color.pale_sky)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = colorResource(R.color.baby_blue_ice),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            )
+                        )
+                        Spacer(Modifier.height(16.dp))
+                    }
+
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -122,7 +138,6 @@ fun AuthScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Champ Password
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -140,46 +155,52 @@ fun AuthScreen(
 
                     Spacer(Modifier.height(32.dp))
 
-                    // Bouton principal
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
                         onClick = {
-                            // Nettoyage de l'e-mail (retire les espaces de fin de saisie)
                             val cleanEmail = email.trim()
+                            val cleanUsername = username.trim()
 
-                            if (cleanEmail.isNotEmpty() && password.isNotEmpty()) {
-                                if (isRegistering) {
+                            if (isRegistering) {
+                                if (cleanEmail.isNotEmpty() && password.isNotEmpty() && cleanUsername.isNotEmpty()) {
                                     auth.createUserWithEmailAndPassword(cleanEmail, password)
                                         .addOnSuccessListener { authResult ->
-                                            // --- SAUVEGARDE DE L'EMAIL DANS LA BDD ---
                                             val uid = authResult.user?.uid
                                             if (uid != null) {
-                                                Firebase.database.reference
+                                                // RETOUR À TA MÉTHODE QUI FONCTIONNE
+                                                val userRef = Firebase.database.reference
                                                     .child("users")
                                                     .child(uid)
-                                                    .child("email")
-                                                    .setValue(cleanEmail)
+
+                                                userRef.child("email").setValue(cleanEmail)
+                                                userRef.child("username").setValue(cleanUsername)
                                                     .addOnSuccessListener {
                                                         onSuccess()
+                                                    }
+                                                    .addOnFailureListener {
+                                                        Toast.makeText(context, "Erreur BDD: ${it.message}", Toast.LENGTH_LONG).show()
                                                     }
                                             } else {
                                                 onSuccess()
                                             }
-                                            // ------------------------------------------
                                         }
                                         .addOnFailureListener {
-                                            // Affiche le vrai message d'erreur
                                             Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
                                         }
                                 } else {
+                                    Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                                }
+                            } else {
+                                if (cleanEmail.isNotEmpty() && password.isNotEmpty()) {
                                     auth.signInWithEmailAndPassword(cleanEmail, password)
                                         .addOnSuccessListener { onSuccess() }
                                         .addOnFailureListener { exception ->
-                                            // Affiche le vrai message d'erreur
                                             Toast.makeText(context, exception.message ?: "Authentication failed", Toast.LENGTH_LONG).show()
                                         }
+                                } else {
+                                    Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         },
@@ -199,8 +220,10 @@ fun AuthScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Toggle Login / Register
-            TextButton(onClick = { isRegistering = !isRegistering }) {
+            TextButton(onClick = {
+                isRegistering = !isRegistering
+                if (!isRegistering) username = ""
+            }) {
                 Text(
                     text = if (isRegistering) "Already a member? Sign In" else "New to the magic? Join us",
                     color = colorResource(R.color.pale_sky),

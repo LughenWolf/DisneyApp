@@ -51,8 +51,9 @@ fun ProfileScreen(
     val auth = FirebaseAuth.getInstance()
     var currentUser by remember { mutableStateOf(auth.currentUser) }
 
-
     var ownedMovies by remember { mutableStateOf<List<String>>(emptyList()) }
+    // NOUVEAU: Variable d'état pour le pseudo
+    var username by remember { mutableStateOf<String?>(null) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateAsState()
@@ -63,16 +64,14 @@ fun ProfileScreen(
         }
     }
 
-
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
-            val userOwnRef = Firebase.database.reference
+            val userRef = Firebase.database.reference
                 .child("users")
                 .child(currentUser!!.uid)
-                .child("own")
 
-
-            userOwnRef.addValueEventListener(object : ValueEventListener {
+            // Récupération des films
+            userRef.child("own").addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val movies = snapshot.children.mapNotNull { it.key }
                     ownedMovies = movies
@@ -82,9 +81,21 @@ fun ProfileScreen(
                     Log.e("ProfileScreen", "Erreur lors de la récupération des films", error.toException())
                 }
             })
-        } else {
 
+            // NOUVEAU: Récupération du pseudo
+            userRef.child("username").addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    username = snapshot.getValue(String::class.java)
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ProfileScreen", "Erreur lors de la récupération du pseudo", error.toException())
+                }
+            })
+
+        } else {
             ownedMovies = emptyList()
+            username = null
         }
     }
 
@@ -140,10 +151,10 @@ fun ProfileScreen(
                 }
             } else {
                 ProfileContent(
-                    userEmail = currentUser?.email ?: "Disney Fan",
+                    // On affiche le pseudo. S'il n'existe pas, on affiche l'email. S'il n'y a pas d'email, "Disney Fan".
+                    userName = username ?: currentUser?.email ?: "Disney Fan",
                     ownedMovies = ownedMovies,
                     onRemoveMovie = { movieTitle ->
-
                         Firebase.database.reference
                             .child("users")
                             .child(currentUser!!.uid)
@@ -152,16 +163,15 @@ fun ProfileScreen(
                             .removeValue()
                     },
                     onMovieClick = { movieTitle ->
-
                         val intent = Intent(context, DetailledMovieActivity::class.java).apply {
                             putExtra("MOVIE_TITLE", movieTitle)
                         }
                         context.startActivity(intent)
-
                     },
                     onLogout = {
                         auth.signOut()
                         currentUser = null
+                        username = null
                     }
                 )
             }
@@ -171,7 +181,7 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileContent(
-    userEmail: String,
+    userName: String, // MODIFIÉ: S'appelait userEmail avant
     ownedMovies: List<String>,
     onRemoveMovie: (String) -> Unit,
     onMovieClick: (String) -> Unit,
@@ -201,8 +211,9 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Affichage du nom d'utilisateur
         Text(
-            text = userEmail,
+            text = userName,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
@@ -245,7 +256,6 @@ fun ProfileContent(
                     color = Color.White.copy(alpha = 0.2f)
                 )
 
-
                 if (ownedMovies.isEmpty()) {
                     Text(
                         text = "Your collection is empty. Go add some magic! ✨",
@@ -267,8 +277,8 @@ fun ProfileContent(
                                 modifier = Modifier
                                     .weight(1f)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .clickable { onMovieClick(movie) } // <-- La zone cliquable ajoutée ici
-                                    .padding(vertical = 4.dp, horizontal = 4.dp) // Un petit padding pour que le clic soit agréable
+                                    .clickable { onMovieClick(movie) }
+                                    .padding(vertical = 4.dp, horizontal = 4.dp)
                             ) {
                                 Text("✨", fontSize = 12.sp)
                                 Spacer(Modifier.width(12.dp))
@@ -279,7 +289,6 @@ fun ProfileContent(
                                     fontWeight = FontWeight.Medium
                                 )
                             }
-
 
                             IconButton(
                                 onClick = { onRemoveMovie(movie) },
