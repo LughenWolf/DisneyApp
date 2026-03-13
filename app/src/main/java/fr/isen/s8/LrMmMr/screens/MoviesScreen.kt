@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Sort
@@ -81,6 +82,8 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
     var wantToWatchMovies by remember { mutableStateOf<List<String>>(emptyList()) }
     var watchedMovies by remember { mutableStateOf<List<String>>(emptyList()) }
 
+    val gridState = rememberLazyGridState()
+
     val sortedMovies = remember(rawMoviesList, sortOrder, wantToWatchMovies, watchedMovies) {
         when (sortOrder) {
             MovieSortOrder.DEFAULT -> rawMoviesList
@@ -93,7 +96,6 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
         }
     }
 
-    // Chargement unique des catégories de films
     LaunchedEffect(Unit) {
         val database = Firebase.database.reference.child("categories")
         database.get().addOnSuccessListener { snapshot ->
@@ -106,13 +108,11 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
         }
     }
 
-    // Écoute en temps réel des listes de l'utilisateur
     DisposableEffect(currentUser?.uid) {
         val uid = currentUser?.uid
         if (uid != null) {
             val userRef = Firebase.database.reference.child("users").child(uid)
 
-            // Listener pour "wantToWatch"
             val wantToWatchRef = userRef.child("wantToWatch")
             val wantToWatchListener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -124,7 +124,6 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
             }
             wantToWatchRef.addValueEventListener(wantToWatchListener)
 
-            // Listener pour "watched"
             val watchedRef = userRef.child("watched")
             val watchedListener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -136,7 +135,6 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
             }
             watchedRef.addValueEventListener(watchedListener)
 
-            // Nettoyage des listeners quand on quitte l'écran
             onDispose {
                 wantToWatchRef.removeEventListener(wantToWatchListener)
                 watchedRef.removeEventListener(watchedListener)
@@ -146,7 +144,12 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
         }
     }
 
-    // Détermination dynamique du titre en fonction du tri actuel
+    LaunchedEffect(sortOrder) {
+        if (sortedMovies.isNotEmpty()) {
+            gridState.scrollToItem(0)
+        }
+    }
+
     val screenTitle = when (sortOrder) {
         MovieSortOrder.DEFAULT -> "Tous les Films"
         MovieSortOrder.DATE_ASC -> "Plus anciens"
@@ -173,7 +176,7 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = screenTitle, // Utilisation du titre dynamique
+                    text = screenTitle,
                     color = Color.White,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
@@ -240,6 +243,7 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
+                    state = gridState,
                     contentPadding = PaddingValues(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -259,7 +263,10 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
                                     modifier = Modifier.padding(top = 8.dp, bottom = 8.dp)
                                 )
                             }
-                            items(moviesInGroup) { movie ->
+                            items(
+                                items = moviesInGroup,
+                                key = { movie -> movie.title }
+                            ) { movie ->
                                 MovieGridItem(
                                     movie = movie,
                                     apiKey = apiKey,
@@ -268,7 +275,10 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
                             }
                         }
                     } else {
-                        items(sortedMovies) { movie ->
+                        items(
+                            items = sortedMovies,
+                            key = { movie -> movie.title }
+                        ) { movie ->
                             MovieGridItem(
                                 movie = movie,
                                 apiKey = apiKey,
@@ -287,15 +297,21 @@ fun MovieGridItem(movie: Movie, apiKey: String, onClick: () -> Unit) {
     var tmdbImageUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(movie.title) {
+        tmdbImageUrl = null
+
         ApiClient.retrofit.searchMovie(apiKey = apiKey, query = movie.title)
             .enqueue(object : Callback<MovieSearchResponse> {
                 override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
                     val path = response.body()?.results?.firstOrNull()?.posterPath
                     if (path != null) {
                         tmdbImageUrl = "https://image.tmdb.org/t/p/w500$path"
+                    } else {
+                        tmdbImageUrl = null
                     }
                 }
-                override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {}
+                override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
+                    tmdbImageUrl = null
+                }
             })
     }
 
