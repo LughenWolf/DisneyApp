@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import fr.isen.s8.LrMmMr.R
 import fr.isen.s8.LrMmMr.components.ImageBannerCard
 import fr.isen.s8.LrMmMr.components.SearchGlassField
+import fr.isen.s8.LrMmMr.models.AppBarState
 
 
 @Composable
@@ -93,5 +94,4 @@ fun fonctionPreview() {
 }
 
 // Modèles et classes d'état
-data class AppBarState(val title: String)
 data class Universe(val title: String, val info: String)

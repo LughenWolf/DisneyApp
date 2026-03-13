@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import androidx.navigation.compose.rememberNavController
 import fr.isen.s8.LrMmMr.models.AppBarState
 import fr.isen.s8.LrMmMr.screens.BottomAppBar
 import fr.isen.s8.LrMmMr.screens.ProfileScreen
+import fr.isen.s8.LrMmMr.screens.UniversesScreen
 import fr.isen.s8.LrMmMr.ui.theme.TheAmazingDisneyAppTheme
 import fr.isen.s8.LrMmMr.screens.AllMoviesScreen
 
@@ -120,9 +122,9 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
-                            // ------------------------------------
-
-                            composable(categoryItem.title) { EmptyScreen("Categories Screen") }
+                            composable(categoryItem.title) {
+                                UniversesScreen(onComposing = { appBarState.value = it }
+                                ) }
                             composable(profileItem.title) {
                                 ProfileScreen(
                                     onComposing = { appBarState.value = it }
