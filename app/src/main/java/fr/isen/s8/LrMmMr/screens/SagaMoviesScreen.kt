@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,7 +25,12 @@ import fr.isen.s8.LrMmMr.models.FirebaseCategory
 import fr.isen.s8.LrMmMr.models.Movies.Movie
 
 @Composable
-fun SagaMoviesScreen(sagaName: String, apiKey: String, onMovieClick: (String) -> Unit) {
+fun SagaMoviesScreen(
+    sagaName: String,
+    apiKey: String,
+    onBackClick: () -> Unit,
+    onMovieClick: (String) -> Unit
+) {
     var moviesList by remember { mutableStateOf<List<Movie>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
@@ -34,7 +39,6 @@ fun SagaMoviesScreen(sagaName: String, apiKey: String, onMovieClick: (String) ->
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
             
-            // On cherche tous les films qui appartiennent à cette saga (sous-saga)
             val filteredMovies = mutableListOf<Movie>()
             for (cat in categories) {
                 for (fran in cat.franchises) {
@@ -60,15 +64,27 @@ fun SagaMoviesScreen(sagaName: String, apiKey: String, onMovieClick: (String) ->
             .background(brush = Brush.verticalGradient(listOf(colorResource(R.color.egyptian_blue), colorResource(R.color.glaucous))))
     ) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Text(
-                text = sagaName.uppercase(),
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                ),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 24.dp, top = 32.dp)
-            )
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Retour",
+                        tint = Color.White
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = sagaName.uppercase(),
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 2.sp
+                    )
+                )
+            }
 
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

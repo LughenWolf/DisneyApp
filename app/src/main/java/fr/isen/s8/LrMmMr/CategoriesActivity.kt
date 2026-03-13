@@ -31,7 +31,10 @@ class CategoriesActivity : ComponentActivity() {
                             )
                         )
                 ) {
-                    CategoriesScreen(franchiseName = franchiseName)
+                    CategoriesScreen(
+                        franchiseName = franchiseName,
+                        onBackClick = { finish() }
+                    )
                 }
             }
         }
