@@ -18,6 +18,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import com.google.firebase.database.getValue
 import fr.isen.s8.LrMmMr.CategoriesActivity
+import fr.isen.s8.LrMmMr.SagaMoviesActivity
 import fr.isen.s8.LrMmMr.R
 import fr.isen.s8.LrMmMr.components.ImageBannerCard
 import fr.isen.s8.LrMmMr.components.SearchGlassField
@@ -45,11 +46,18 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
         val database = Firebase.database.reference.child("categories")
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
-            val allFranchises = categories.flatMap { it.franchises }
+            
+            // On filtre pour ne garder que les franchises qui ont au moins une sous-saga avec des films
+            // OU au moins un film direct.
+            val allFranchises = categories.flatMap { it.franchises }.filter { franchise ->
+                val hasDirectFilms = franchise.films?.isNotEmpty() == true
+                val hasValidSagas = franchise.sous_sagas?.any { it.films.isNotEmpty() } == true
+                hasDirectFilms || hasValidSagas
+            }
+            
             franchises = allFranchises
             isLoading = false
 
-            // Pour chaque franchise, on va chercher une image sur TMDB
             allFranchises.forEach { franchise ->
                 fetchFranchiseImage(franchise.nom, apiKey) { url ->
                     franchiseImages[franchise.nom] = url
@@ -90,14 +98,24 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
                     items(franchises) { franchise ->
                         ImageBannerCard(
                             title = franchise.nom.uppercase(),
-                            // On utilise l'URL TMDB si on l'a trouvée, sinon l'image par défaut
                             imageUrl = franchiseImages[franchise.nom],
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
-                                val intent = Intent(context, CategoriesActivity::class.java).apply {
-                                    putExtra("FRANCHISE_NAME", franchise.nom)
+                                val validSagas = franchise.sous_sagas?.filter { it.films.isNotEmpty() } ?: emptyList()
+                                
+                                // Si une seule saga et pas de films directs, on skip l'écran de catégories
+                                if (validSagas.size == 1 && (franchise.films == null || franchise.films.isEmpty())) {
+                                    val intent = Intent(context, SagaMoviesActivity::class.java).apply {
+                                        putExtra("SAGA_NAME", validSagas[0].nom)
+                                        putExtra("FRANCHISE_NAME", franchise.nom)
+                                    }
+                                    context.startActivity(intent)
+                                } else {
+                                    val intent = Intent(context, CategoriesActivity::class.java).apply {
+                                        putExtra("FRANCHISE_NAME", franchise.nom)
+                                    }
+                                    context.startActivity(intent)
                                 }
-                                context.startActivity(intent)
                             }
                         )
                     }

@@ -15,6 +15,7 @@ class SagaMoviesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val sagaName = intent.getStringExtra("SAGA_NAME") ?: ""
+        val franchiseName = intent.getStringExtra("FRANCHISE_NAME") ?: ""
         val apiKey = "a4a738325f5cd022e712c9b94a94f34a"
 
         setContent {
@@ -25,6 +26,7 @@ class SagaMoviesActivity : ComponentActivity() {
                 ) {
                     SagaMoviesScreen(
                         sagaName = sagaName,
+                        franchiseName = franchiseName,
                         apiKey = apiKey,
                         onMovieClick = { movieTitle ->
                             val intent = Intent(this, DetailledMovieActivity::class.java).apply {

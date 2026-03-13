@@ -3,6 +3,7 @@ package fr.isen.s8.LrMmMr.screens
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -379,15 +381,57 @@ fun MovieGridItem(movie: Movie, apiKey: String, imageCache: MutableMap<String, S
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.66f)
-                .shadow(4.dp, RoundedCornerShape(12.dp))
+                .shadow(8.dp, RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color.DarkGray)
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.3f),
+                            Color.White.copy(alpha = 0.05f),
+                            Color.White.copy(alpha = 0.15f)
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
         ) {
             AsyncImage(
                 model = tmdbImageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
+            )
+
+            // Glassy Overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.15f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.3f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(500f, 500f)
+                        )
+                    )
+            )
+
+            // Inner Border Brillance
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(1.dp)
+                    .border(
+                        width = 0.5.dp,
+                        color = Color.White.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(11.dp)
+                    )
             )
 
             if (movie.year.isNotBlank() && movie.year != "null" && movie.year != "0") {

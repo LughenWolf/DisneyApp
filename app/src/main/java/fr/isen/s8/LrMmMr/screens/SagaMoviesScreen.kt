@@ -25,19 +25,19 @@ import fr.isen.s8.LrMmMr.models.FirebaseCategory
 import fr.isen.s8.LrMmMr.models.Movies.Movie
 
 @Composable
-fun SagaMoviesScreen(sagaName: String, apiKey: String, onMovieClick: (String) -> Unit) {
+fun SagaMoviesScreen(sagaName: String, franchiseName: String, apiKey: String, onMovieClick: (String) -> Unit) {
     var moviesList by remember { mutableStateOf<List<Movie>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(sagaName) {
+    LaunchedEffect(sagaName, franchiseName) {
         val database = Firebase.database.reference.child("categories")
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
             
-            // On cherche tous les films qui appartiennent à cette saga (sous-saga)
+            // On cherche la franchise exacte, puis la sous-saga exacte à l'intérieur
             val filteredMovies = mutableListOf<Movie>()
             for (cat in categories) {
-                for (fran in cat.franchises) {
+                cat.franchises.find { it.nom == franchiseName }?.let { fran ->
                     fran.sous_sagas?.find { it.nom == sagaName }?.let { saga ->
                         saga.films.forEach { film ->
                             filteredMovies.add(
