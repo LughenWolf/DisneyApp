@@ -41,18 +41,31 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
             val foundFranchise = categories.flatMap { it.franchises }.find { it.nom == franchiseName }
-            
+
             franchiseData = foundFranchise
             isLoading = false
 
             foundFranchise?.sous_sagas?.forEach { saga ->
-                if (saga.films.isNotEmpty()) {
-                    val firstMovieTitle = saga.films.firstOrNull()?.titre
-                    if (firstMovieTitle != null) {
-                        fetchFranchiseImage(firstMovieTitle, apiKey) { url ->
-                            franchiseImages[saga.nom] = url
-                        }
-                    }
+                val firstMovie = saga.films.firstOrNull()
+                if (firstMovie != null) {
+                    val title = firstMovie.titre
+                    val year = firstMovie.annee.toString()
+
+                    ApiClient.retrofit.searchMovie(apiKey = apiKey, query = title)
+                        .enqueue(object : Callback<MovieSearchResponse> {
+                            override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
+                                val results = response.body()?.results
+                                val result = results?.firstOrNull { it.releaseDate?.startsWith(year) == true } ?: results?.firstOrNull()
+
+                                val path = result?.posterPath
+                                if (path != null) {
+                                    franchiseImages[saga.nom] = "https://image.tmdb.org/t/p/w500$path"
+                                }
+                            }
+
+                            override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
+                            }
+                        })
                 }
             }
         }.addOnFailureListener {
@@ -89,7 +102,7 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
             }
         } else if (franchiseData != null) {
             val validSousSagas = franchiseData?.sous_sagas?.filter { it.films.isNotEmpty() } ?: emptyList()
-            
+
             if (validSousSagas.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Aucune saga disponible pour le moment", color = Color.White)
@@ -104,10 +117,10 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
                             title = saga.nom.uppercase(),
                             imageUrl = franchiseImages[saga.nom],
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { 
+                            onClick = {
                                 val intent = Intent(context, SagaMoviesActivity::class.java).apply {
                                     putExtra("SAGA_NAME", saga.nom)
-                                    putExtra("FRANCHISE_NAME", franchiseName) // Ajout de la franchise pour l'unicité
+                                    putExtra("FRANCHISE_NAME", franchiseName)
                                 }
                                 context.startActivity(intent)
                             }
