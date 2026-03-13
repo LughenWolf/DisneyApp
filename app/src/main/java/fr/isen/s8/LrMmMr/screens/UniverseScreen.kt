@@ -1,22 +1,23 @@
 package fr.isen.s8.LrMmMr.screens
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import com.google.firebase.database.getValue
+import fr.isen.s8.LrMmMr.CategoriesActivity
 import fr.isen.s8.LrMmMr.R
 import fr.isen.s8.LrMmMr.components.ImageBannerCard
 import fr.isen.s8.LrMmMr.components.SearchGlassField
@@ -33,6 +34,7 @@ import retrofit2.Response
 fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) -> Unit = {}) {
     var franchises by remember { mutableStateOf<List<FirebaseFranchise>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    val context = LocalContext.current
 
     val franchiseImages = remember { mutableStateMapOf<String, String>() }
     val apiKey = "a4a738325f5cd022e712c9b94a94f34a" // Utilisation de votre clé TMDB
@@ -91,7 +93,12 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
                             // On utilise l'URL TMDB si on l'a trouvée, sinon l'image par défaut
                             imageUrl = franchiseImages[franchise.nom],
                             modifier = Modifier.fillMaxWidth(),
-                            onClick = { /* Navigation future */ }
+                            onClick = {
+                                val intent = Intent(context, CategoriesActivity::class.java).apply {
+                                    putExtra("FRANCHISE_NAME", franchise.nom)
+                                }
+                                context.startActivity(intent)
+                            }
                         )
                     }
                 }
