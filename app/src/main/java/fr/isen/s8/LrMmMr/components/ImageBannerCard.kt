@@ -1,6 +1,5 @@
 package fr.isen.s8.LrMmMr.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +21,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -30,12 +28,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import fr.isen.s8.LrMmMr.R
 
 @Composable
 fun ImageBannerCard(
     title: String,
-    imageRes: Int,
+    imageUrl: String? = null,
+    imageRes: Int? = null,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
@@ -43,6 +43,7 @@ fun ImageBannerCard(
         modifier = modifier
             .fillMaxWidth()
             .height(140.dp)
+            .clickable { onClick() }
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(24.dp),
@@ -56,17 +57,29 @@ fun ImageBannerCard(
             .fillMaxSize()
             .background(Color.White)) {
 
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .align(Alignment.CenterEnd)
-            )
+            if (imageUrl != null) {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(),
+                    error = painterResource(id = R.drawable.mcu), // Image par défaut en cas d'erreur
+                    placeholder = painterResource(id = R.drawable.mcu)
+                )
+            } else if (imageRes != null) {
+                Image(
+                    painter = painterResource(id = imageRes),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                )
+            }
 
-            // Dégradé oblique
+            // Dégradé oblique pour lisibilité du texte
             Box(
                 modifier = Modifier
                     .fillMaxSize()
