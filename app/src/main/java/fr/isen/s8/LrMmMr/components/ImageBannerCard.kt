@@ -2,9 +2,9 @@ package fr.isen.s8.LrMmMr.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -45,27 +46,42 @@ fun ImageBannerCard(
             .height(140.dp)
             .clickable { onClick() }
             .shadow(
-                elevation = 12.dp,
+                elevation = 16.dp,
                 shape = RoundedCornerShape(24.dp),
-                ambientColor = Color.White.copy(alpha = 0.4f),
-                spotColor = Color.White.copy(alpha = 0.4f)
+                ambientColor = Color.Black.copy(alpha = 0.5f),
+                spotColor = Color.Black.copy(alpha = 0.5f)
             ),
         shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)) {
+            .background(Color.DarkGray)
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.4f),
+                        Color.White.copy(alpha = 0.05f),
+                        Color.White.copy(alpha = 0.2f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                ),
+                shape = RoundedCornerShape(24.dp)
+            )
+            .clip(RoundedCornerShape(24.dp))
+        ) {
 
+            // L'image de fond
             if (imageUrl != null) {
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(),
-                    error = painterResource(id = R.drawable.mcu), // Image par défaut en cas d'erreur
+                    modifier = Modifier.fillMaxSize(),
+                    error = painterResource(id = R.drawable.mcu),
                     placeholder = painterResource(id = R.drawable.mcu)
                 )
             } else if (imageRes != null) {
@@ -73,35 +89,67 @@ fun ImageBannerCard(
                     painter = painterResource(id = imageRes),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxSize()
                 )
             }
 
-            // Dégradé oblique pour lisibilité du texte
+            // Premier overlay : Ton dégradé de couleur (Baby Blue Ice)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         brush = Brush.linearGradient(
                             colors = listOf(
-                                colorResource(id = R.color.baby_blue_ice).copy(alpha = 0.95f),
-                                colorResource(id = R.color.baby_blue_ice).copy(alpha = 0.6f),
-                                colorResource(id = R.color.baby_blue_ice).copy(alpha = 0.0f)
+                                colorResource(id = R.color.saphire_sky).copy(alpha = 0.95f),
+                                colorResource(id = R.color.saphire_sky).copy(alpha = 0.6f),
+                                colorResource(id = R.color.saphire_sky).copy(alpha = 0.0f)
                             ),
-                            start = Offset(450f, 0f),
+                            start = Offset(0f, 0f), // On part de la gauche pour couvrir le texte
                             end = Offset(950f, 400f)
                         )
+                    )
+            )
+
+            // Second overlay : L'effet "Glassy" sombre pour la profondeur
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.4f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(1000f, 500f)
+                        )
+                    )
+            )
+            
+            // Effet de brillance supplémentaire (bordure interne)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(1.dp)
+                    .border(
+                        width = 0.5.dp,
+                        color = Color.White.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(23.dp)
                     )
             )
 
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White,
-                    letterSpacing = 0.5.sp
+                    letterSpacing = 1.sp,
+                    shadow = androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
                 ),
                 modifier = Modifier
                     .align(Alignment.CenterStart)
