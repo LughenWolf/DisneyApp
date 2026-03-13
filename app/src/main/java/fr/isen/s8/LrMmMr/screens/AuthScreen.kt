@@ -24,6 +24,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+// Nouveaux imports pour la base de données :
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import fr.isen.s8.LrMmMr.R
 
 @Composable
@@ -147,15 +150,40 @@ fun AuthScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         onClick = {
-                            if (email.isNotEmpty() && password.isNotEmpty()) {
+                            // Nettoyage de l'e-mail (retire les espaces de fin de saisie)
+                            val cleanEmail = email.trim()
+
+                            if (cleanEmail.isNotEmpty() && password.isNotEmpty()) {
                                 if (isRegistering) {
-                                    auth.createUserWithEmailAndPassword(email, password)
-                                        .addOnSuccessListener { onSuccess() }
-                                        .addOnFailureListener { Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show() }
+                                    auth.createUserWithEmailAndPassword(cleanEmail, password)
+                                        .addOnSuccessListener { authResult ->
+                                            // --- SAUVEGARDE DE L'EMAIL DANS LA BDD ---
+                                            val uid = authResult.user?.uid
+                                            if (uid != null) {
+                                                Firebase.database.reference
+                                                    .child("users")
+                                                    .child(uid)
+                                                    .child("email")
+                                                    .setValue(cleanEmail)
+                                                    .addOnSuccessListener {
+                                                        onSuccess()
+                                                    }
+                                            } else {
+                                                onSuccess()
+                                            }
+                                            // ------------------------------------------
+                                        }
+                                        .addOnFailureListener {
+                                            // Affiche le vrai message d'erreur
+                                            Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
+                                        }
                                 } else {
-                                    auth.signInWithEmailAndPassword(email, password)
+                                    auth.signInWithEmailAndPassword(cleanEmail, password)
                                         .addOnSuccessListener { onSuccess() }
-                                        .addOnFailureListener { Toast.makeText(context, "Authentication failed", Toast.LENGTH_SHORT).show() }
+                                        .addOnFailureListener { exception ->
+                                            // Affiche le vrai message d'erreur
+                                            Toast.makeText(context, exception.message ?: "Authentication failed", Toast.LENGTH_LONG).show()
+                                        }
                                 }
                             }
                         },

@@ -1,13 +1,16 @@
 package fr.isen.s8.LrMmMr.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +35,7 @@ import fr.isen.s8.LrMmMr.models.Movies.Movie
 import fr.isen.s8.LrMmMr.models.FirebaseCategory
 import fr.isen.s8.LrMmMr.network.ApiClient
 import fr.isen.s8.LrMmMr.dataClasses.MovieSearchResponse
+import fr.isen.s8.LrMmMr.dataClasses.VideoResponse
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -40,20 +45,28 @@ import fr.isen.s8.LrMmMr.components.CustomTopBar
 import fr.isen.s8.LrMmMr.managers.UserMovieManager
 
 @Composable
-fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolean, userUid: String) {
+fun DetailledMovieScreen(
+    movieTitle: String,
+    apiKey: String,
+    isConnected: Boolean,
+    userUid: String,
+    onBackPressed: () -> Unit
+) {
     var movieDetails by remember { mutableStateOf<Movie?>(null) }
     var tmdbImageUrl by remember { mutableStateOf<String?>(null) }
+    var trailerUrl by remember { mutableStateOf<String?>(null) } // <-- État pour le trailer
     var isLoading by remember { mutableStateOf(true) }
-
 
     var isWantToWatch by remember { mutableStateOf(false) }
     var isWatched by remember { mutableStateOf(false) }
     var isOwn by remember { mutableStateOf(false) }
     var isWantToGetRidOf by remember { mutableStateOf(false) }
 
+    var ownersEmails by remember { mutableStateOf<List<String>>(emptyList()) }
+    var sellersEmails by remember { mutableStateOf<List<String>>(emptyList()) }
+
     LaunchedEffect(movieTitle) {
         val database = Firebase.database.reference.child("categories")
-
 
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
@@ -65,11 +78,38 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
                 ApiClient.retrofit.searchMovie(apiKey = apiKey, query = movieTitle)
                     .enqueue(object : Callback<MovieSearchResponse> {
                         override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
-                            val path = response.body()?.results?.firstOrNull()?.posterPath
-                            if (path != null) {
-                                tmdbImageUrl = "https://image.tmdb.org/t/p/w500$path"
+                            val result = response.body()?.results?.firstOrNull()
+
+                            if (result?.posterPath != null) {
+                                tmdbImageUrl = "https://image.tmdb.org/t/p/w500${result.posterPath}"
                             }
-                            isLoading = false
+
+                            // --- REQUÊTE POUR LE TRAILER ---
+                            if (result?.id != null) {
+                                ApiClient.retrofit.getMovieVideos(movieId = result.id, apiKey = apiKey)
+                                    .enqueue(object : Callback<VideoResponse> {
+                                        override fun onResponse(call: Call<VideoResponse>, videoResponse: Response<VideoResponse>) {
+                                            // On cherche une vidéo Youtube de type "Trailer"
+                                            val trailer = videoResponse.body()?.results?.firstOrNull {
+                                                it.site.equals("YouTube", ignoreCase = true) && it.type.equals("Trailer", ignoreCase = true)
+                                            } ?: videoResponse.body()?.results?.firstOrNull {
+                                                // Secours : n'importe quelle vidéo Youtube si pas de tag "Trailer"
+                                                it.site.equals("YouTube", ignoreCase = true)
+                                            }
+
+                                            if (trailer != null) {
+                                                trailerUrl = "https://www.youtube.com/watch?v=${trailer.key}"
+                                            }
+                                            isLoading = false
+                                        }
+
+                                        override fun onFailure(call: Call<VideoResponse>, t: Throwable) {
+                                            isLoading = false
+                                        }
+                                    })
+                            } else {
+                                isLoading = false
+                            }
                         }
                         override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
                             isLoading = false
@@ -82,15 +122,37 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
             isLoading = false
         }
 
-
         if (isConnected && userUid.isNotEmpty()) {
             val userRef = Firebase.database.reference.child("users").child(userUid)
-
 
             userRef.child("wantToWatch").child(movieTitle).get().addOnSuccessListener { isWantToWatch = it.exists() }
             userRef.child("watched").child(movieTitle).get().addOnSuccessListener { isWatched = it.exists() }
             userRef.child("own").child(movieTitle).get().addOnSuccessListener { isOwn = it.exists() }
             userRef.child("wantToGetRidOf").child(movieTitle).get().addOnSuccessListener { isWantToGetRidOf = it.exists() }
+        }
+
+        val allUsersRef = Firebase.database.reference.child("users")
+        allUsersRef.get().addOnSuccessListener { snapshot ->
+            val ownersList = mutableListOf<String>()
+            val sellersList = mutableListOf<String>()
+
+            for (userSnapshot in snapshot.children) {
+                val ownsMovie = userSnapshot.child("own").child(movieTitle).exists()
+                val wantsToGetRidOfMovie = userSnapshot.child("wantToGetRidOf").child(movieTitle).exists()
+
+                if (ownsMovie && userSnapshot.key != userUid) {
+                    val email = userSnapshot.child("email").getValue(String::class.java)
+                        ?: "Membre mystère (ID: ${userSnapshot.key?.take(5)}...)"
+
+                    if (wantsToGetRidOfMovie) {
+                        sellersList.add(email)
+                    } else {
+                        ownersList.add(email)
+                    }
+                }
+            }
+            ownersEmails = ownersList
+            sellersEmails = sellersList
         }
     }
 
@@ -104,13 +166,11 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
             CustomTopBar(
                 movieTitle = movieTitle,
                 isConnected = isConnected,
-
                 isWantToWatch = isWantToWatch,
                 isWatched = isWatched,
                 isOwn = isOwn,
                 isWantToGetRidOf = isWantToGetRidOf,
-
-
+                onBackClick = { onBackPressed() },
                 onWantToWatchClick = {
                     isWantToWatch = !isWantToWatch
                     UserMovieManager.toggleMovieStatus(userUid, movieTitle, "wantToWatch", isWantToWatch)
@@ -122,6 +182,10 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
                 onOwnClick = {
                     isOwn = !isOwn
                     UserMovieManager.toggleMovieStatus(userUid, movieTitle, "own", isOwn)
+                    if (!isOwn && isWantToGetRidOf) {
+                        isWantToGetRidOf = false
+                        UserMovieManager.toggleMovieStatus(userUid, movieTitle, "wantToGetRidOf", false)
+                    }
                 },
                 onDeleteClick = {
                     isWantToGetRidOf = !isWantToGetRidOf
@@ -133,7 +197,12 @@ fun DetailledMovieScreen(movieTitle: String, apiKey: String, isConnected: Boolea
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = Color.White)
                 } else if (movieDetails != null) {
-                    DetailledMovie(movie = movieDetails!!.copy(imageUrl = tmdbImageUrl ?: ""), apiKey = apiKey)
+                    DetailledMovie(
+                        movie = movieDetails!!.copy(imageUrl = tmdbImageUrl ?: ""),
+                        trailerUrl = trailerUrl, // <-- Passage du lien
+                        ownersEmails = ownersEmails,
+                        sellersEmails = sellersEmails
+                    )
                 } else {
                     Text("Film introuvable", color = Color.White, modifier = Modifier.align(Alignment.Center))
                 }
@@ -159,7 +228,15 @@ fun findMovieInCategories(categories: List<FirebaseCategory>, title: String): Mo
 }
 
 @Composable
-fun DetailledMovie(movie: Movie, modifier: Modifier = Modifier, apiKey: String) {
+fun DetailledMovie(
+    movie: Movie,
+    modifier: Modifier = Modifier,
+    trailerUrl: String?,
+    ownersEmails: List<String> = emptyList(),
+    sellersEmails: List<String> = emptyList()
+) {
+    val context = LocalContext.current // <-- Contexte pour lancer Youtube
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -179,6 +256,24 @@ fun DetailledMovie(movie: Movie, modifier: Modifier = Modifier, apiKey: String) 
                 .shadow(8.dp, RoundedCornerShape(16.dp))
                 .clip(RoundedCornerShape(16.dp))
         )
+
+        // --- BOUTON TRAILER ---
+        if (trailerUrl != null) {
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(trailerUrl))
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.baby_blue_ice)),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = colorResource(R.color.egyptian_blue))
+                Spacer(Modifier.width(8.dp))
+                Text("Voir le Trailer", color = colorResource(R.color.egyptian_blue), fontWeight = FontWeight.Bold)
+            }
+        }
+        // -----------------------
 
         Text(
             text = movie.title,
@@ -205,5 +300,37 @@ fun DetailledMovie(movie: Movie, modifier: Modifier = Modifier, apiKey: String) 
             GlassyInfoCard(label = "Univers", value = movie.universe)
             GlassyInfoCard(label = "Saga", value = movie.saga)
         }
+
+        if (ownersEmails.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Ils l'ont dans leur collection :",
+                color = colorResource(R.color.baby_blue_ice),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            ownersEmails.forEach { email ->
+                GlassyInfoCard(label = "Membre", value = email)
+            }
+        }
+
+        if (sellersEmails.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Ils veulent s'en débarrasser :",
+                color = colorResource(R.color.baby_blue_ice),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            sellersEmails.forEach { email ->
+                GlassyInfoCard(label = "Contact", value = email)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
