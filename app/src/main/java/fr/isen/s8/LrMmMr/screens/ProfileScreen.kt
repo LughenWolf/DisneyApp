@@ -11,9 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -175,7 +174,7 @@ fun ProfileContent(
     userEmail: String,
     ownedMovies: List<String>,
     onRemoveMovie: (String) -> Unit,
-    onMovieClick: (String) -> Unit, // <-- Nouveau paramètre pour gérer le clic
+    onMovieClick: (String) -> Unit,
     onLogout: () -> Unit
 ) {
     Column(
@@ -191,7 +190,7 @@ fun ProfileContent(
                 .padding(5.dp)
         ) {
             AsyncImage(
-                model = "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp",
+                model = R.drawable.stitch,
                 contentDescription = "Profile Picture",
                 modifier = Modifier
                     .fillMaxSize()
@@ -215,16 +214,8 @@ fun ProfileContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            TextButton(onClick = { /* Settings */ }) {
-                Icon(Icons.Default.Settings, contentDescription = null, tint = colorResource(R.color.baby_blue_ice))
-                Spacer(Modifier.width(8.dp))
-                Text("Settings", color = colorResource(R.color.baby_blue_ice))
-            }
-
-            Spacer(Modifier.width(16.dp))
-
             TextButton(onClick = onLogout) {
-                Icon(Icons.Filled.Logout, contentDescription = null, tint = colorResource(R.color.pale_sky))
+                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = colorResource(R.color.pale_sky))
                 Spacer(Modifier.width(8.dp))
                 Text("Logout", color = colorResource(R.color.pale_sky))
             }
