@@ -22,6 +22,11 @@ import fr.isen.s8.LrMmMr.SagaMoviesActivity
 import fr.isen.s8.LrMmMr.components.ImageBannerCard
 import fr.isen.s8.LrMmMr.models.FirebaseCategory
 import fr.isen.s8.LrMmMr.models.FirebaseFranchise
+import fr.isen.s8.LrMmMr.network.ApiClient
+import fr.isen.s8.LrMmMr.dataClasses.MovieSearchResponse
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
@@ -41,8 +46,13 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
             isLoading = false
 
             foundFranchise?.sous_sagas?.forEach { saga ->
-                fetchFranchiseImage(saga.nom, apiKey) { url ->
-                    franchiseImages[saga.nom] = url
+                if (saga.films.isNotEmpty()) {
+                    val firstMovieTitle = saga.films.firstOrNull()?.titre
+                    if (firstMovieTitle != null) {
+                        fetchFranchiseImage(firstMovieTitle, apiKey) { url ->
+                            franchiseImages[saga.nom] = url
+                        }
+                    }
                 }
             }
         }.addOnFailureListener {
@@ -78,16 +88,18 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
                 CircularProgressIndicator(color = Color.White)
             }
         } else if (franchiseData != null) {
-            val sousSagas = franchiseData?.sous_sagas ?: emptyList()
+            val validSousSagas = franchiseData?.sous_sagas?.filter { it.films.isNotEmpty() } ?: emptyList()
             
-            if (sousSagas.isEmpty()) {
-                Text("Aucune sous-saga trouvée", color = Color.White)
+            if (validSousSagas.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Aucune saga disponible pour le moment", color = Color.White)
+                }
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(sousSagas) { saga ->
+                    items(validSousSagas) { saga ->
                         ImageBannerCard(
                             title = saga.nom.uppercase(),
                             imageUrl = franchiseImages[saga.nom],
@@ -95,6 +107,7 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
                             onClick = { 
                                 val intent = Intent(context, SagaMoviesActivity::class.java).apply {
                                     putExtra("SAGA_NAME", saga.nom)
+                                    putExtra("FRANCHISE_NAME", franchiseName) // Ajout de la franchise pour l'unicité
                                 }
                                 context.startActivity(intent)
                             }
