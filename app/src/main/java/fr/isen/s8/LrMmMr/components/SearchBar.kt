@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun SearchGlassField(
+    query: String,
+    onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "Search"
 ) {
@@ -38,46 +40,43 @@ fun SearchGlassField(
             .clip(RoundedCornerShape(34.dp))
             .background(
                 brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0x66A99BCB),
-                        Color(0x445B5278),
-                        Color(0x33312642)
-                    )
+                    colors = listOf(Color(0x66A99BCB), Color(0x445B5278), Color(0x33312642))
                 )
             )
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.18f),
-                shape = RoundedCornerShape(34.dp)
-            )
-            .shadow(
-                elevation = 10.dp,
-                shape = RoundedCornerShape(34.dp),
-                ambientColor = Color.White.copy(alpha = 0.08f),
-                spotColor = Color.White.copy(alpha = 0.08f)
-            )
+            .border(1.dp, Color.White.copy(alpha = 0.18f), RoundedCornerShape(34.dp))
             .padding(horizontal = 22.dp),
         contentAlignment = Alignment.CenterStart
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search icon",
-                tint = Color.White.copy(alpha = 0.55f),
-                modifier = Modifier.size(28.dp)
-            )
+        androidx.compose.foundation.text.BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 16.sp),
+            modifier = Modifier.fillMaxWidth(),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
+            decorationBox = { innerTextField ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search icon",
+                        tint = Color.White.copy(alpha = 0.55f),
+                        modifier = Modifier.size(28.dp)
+                    )
 
-            Text(
-                text = placeholder,
-                color = Color.White.copy(alpha = 0.55f),
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Normal,
-                    letterSpacing = 0.2.sp
-                )
-            )
-        }
+                    Box {
+                        if (query.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                color = Color.White.copy(alpha = 0.55f),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        innerTextField()
+                    }
+                }
+            }
+        )
     }
 }
