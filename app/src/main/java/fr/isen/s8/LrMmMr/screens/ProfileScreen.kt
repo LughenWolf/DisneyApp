@@ -1,14 +1,17 @@
 package fr.isen.s8.LrMmMr.screens
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -28,8 +31,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 import coil3.compose.AsyncImage
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
 import fr.isen.s8.LrMmMr.AuthActivity
+import fr.isen.s8.LrMmMr.DetailledMovieActivity
 import fr.isen.s8.LrMmMr.R
 import fr.isen.s8.LrMmMr.components.GlassyCardTag
 import fr.isen.s8.LrMmMr.models.AppBarState
@@ -43,12 +52,40 @@ fun ProfileScreen(
     val auth = FirebaseAuth.getInstance()
     var currentUser by remember { mutableStateOf(auth.currentUser) }
 
+
+    var ownedMovies by remember { mutableStateOf<List<String>>(emptyList()) }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateAsState()
 
     LaunchedEffect(lifecycleState) {
         if (lifecycleState == Lifecycle.State.RESUMED) {
             currentUser = auth.currentUser
+        }
+    }
+
+
+    LaunchedEffect(currentUser) {
+        if (currentUser != null) {
+            val userOwnRef = Firebase.database.reference
+                .child("users")
+                .child(currentUser!!.uid)
+                .child("own")
+
+
+            userOwnRef.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val movies = snapshot.children.mapNotNull { it.key }
+                    ownedMovies = movies
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.e("ProfileScreen", "Erreur lors de la récupération des films", error.toException())
+                }
+            })
+        } else {
+
+            ownedMovies = emptyList()
         }
     }
 
@@ -105,6 +142,24 @@ fun ProfileScreen(
             } else {
                 ProfileContent(
                     userEmail = currentUser?.email ?: "Disney Fan",
+                    ownedMovies = ownedMovies,
+                    onRemoveMovie = { movieTitle ->
+
+                        Firebase.database.reference
+                            .child("users")
+                            .child(currentUser!!.uid)
+                            .child("own")
+                            .child(movieTitle)
+                            .removeValue()
+                    },
+                    onMovieClick = { movieTitle ->
+
+                        val intent = Intent(context, DetailledMovieActivity::class.java).apply {
+                            putExtra("MOVIE_TITLE", movieTitle)
+                        }
+                        context.startActivity(intent)
+
+                    },
                     onLogout = {
                         auth.signOut()
                         currentUser = null
@@ -116,7 +171,13 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileContent(userEmail: String, onLogout: () -> Unit) {
+fun ProfileContent(
+    userEmail: String,
+    ownedMovies: List<String>,
+    onRemoveMovie: (String) -> Unit,
+    onMovieClick: (String) -> Unit, // <-- Nouveau paramètre pour gérer le clic
+    onLogout: () -> Unit
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
@@ -193,20 +254,53 @@ fun ProfileContent(userEmail: String, onLogout: () -> Unit) {
                     color = Color.White.copy(alpha = 0.2f)
                 )
 
-                val movies = listOf("The Lion King", "Frozen", "Aladdin", "Mulan")
-                movies.forEach { movie ->
-                    Row(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("✨", fontSize = 12.sp)
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            text = movie,
-                            color = Color.White,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+
+                if (ownedMovies.isEmpty()) {
+                    Text(
+                        text = "Your collection is empty. Go add some magic! ✨",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    ownedMovies.forEach { movie ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onMovieClick(movie) } // <-- La zone cliquable ajoutée ici
+                                    .padding(vertical = 4.dp, horizontal = 4.dp) // Un petit padding pour que le clic soit agréable
+                            ) {
+                                Text("✨", fontSize = 12.sp)
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    text = movie,
+                                    color = Color.White,
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+
+                            IconButton(
+                                onClick = { onRemoveMovie(movie) },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Remove from collection",
+                                    tint = colorResource(R.color.pale_sky)
+                                )
+                            }
+                        }
                     }
                 }
             }

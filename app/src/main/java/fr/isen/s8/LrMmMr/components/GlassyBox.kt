@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,6 +49,22 @@ fun GlassyCardTag(text: String) {
 }
 
 @Composable
+fun BlackGlassyCardTag(text: String) {
+    Card(
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Black.copy(alpha = 0.7f)),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+    ) {
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
 fun GlassyInfoCard(label: String, value: String) {
     Card(
         shape = RoundedCornerShape(12.dp),
@@ -77,6 +95,77 @@ fun GlassyCard(value: String) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp))
+        }
+    }
+}
+
+// --- COMPOSANT PELLICULE DE FILM AFFINÉ ---
+@Composable
+fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(4.dp, RoundedCornerShape(6.dp))
+            .clip(RoundedCornerShape(6.dp))
+            .background(Color.Black.copy(alpha = 0.85f))
+            .padding(vertical = 6.dp) // Padding extérieur réduit
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+
+            // Perforations du haut
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                repeat(16) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 8.dp, height = 10.dp) 
+                            .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp)) // Espacement réduit
+
+            // Espace central avec le texte
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .background(Color.DarkGray.copy(alpha = 0.5f), RoundedCornerShape(2.dp))
+                    .padding(vertical = 8.dp, horizontal = 12.dp), // Hauteur du cadre texte réduite
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    color = Color.White,
+                    fontSize = 16.sp, // Police plus fine
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    letterSpacing = 1.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp)) // Espacement réduit
+
+            // Perforations du bas
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                repeat(16) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = 8.dp, height = 10.dp) // Trous plus petits
+                            .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
+                    )
+                }
+            }
         }
     }
 }
