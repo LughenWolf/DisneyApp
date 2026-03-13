@@ -83,6 +83,7 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
     var watchedMovies by remember { mutableStateOf<List<String>>(emptyList()) }
 
     val gridState = rememberLazyGridState()
+    val imageCache = remember { mutableMapOf<String, String?>() }
 
     val sortedMovies = remember(rawMoviesList, sortOrder, wantToWatchMovies, watchedMovies) {
         when (sortOrder) {
@@ -265,11 +266,12 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
                             }
                             items(
                                 items = moviesInGroup,
-                                key = { movie -> movie.title }
+                                key = { movie -> "${movie.title}_${movie.year}_${movie.saga}" }
                             ) { movie ->
                                 MovieGridItem(
                                     movie = movie,
                                     apiKey = apiKey,
+                                    imageCache = imageCache,
                                     onClick = { onMovieClick(movie.title) }
                                 )
                             }
@@ -277,11 +279,12 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
                     } else {
                         items(
                             items = sortedMovies,
-                            key = { movie -> movie.title }
+                            key = { movie -> "${movie.title}_${movie.year}_${movie.saga}" }
                         ) { movie ->
                             MovieGridItem(
                                 movie = movie,
                                 apiKey = apiKey,
+                                imageCache = imageCache,
                                 onClick = { onMovieClick(movie.title) }
                             )
                         }
@@ -293,26 +296,40 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
 }
 
 @Composable
-fun MovieGridItem(movie: Movie, apiKey: String, onClick: () -> Unit) {
-    var tmdbImageUrl by remember { mutableStateOf<String?>(null) }
+fun MovieGridItem(movie: Movie, apiKey: String, imageCache: MutableMap<String, String?>, onClick: () -> Unit) {
+    var tmdbImageUrl by remember(movie.title) { mutableStateOf(imageCache[movie.title]) }
 
-    LaunchedEffect(movie.title) {
+    DisposableEffect(movie.title) {
+        if (imageCache.containsKey(movie.title)) {
+            tmdbImageUrl = imageCache[movie.title]
+            return@DisposableEffect onDispose { }
+        }
+
         tmdbImageUrl = null
+        val call = ApiClient.retrofit.searchMovie(apiKey = apiKey, query = movie.title)
 
-        ApiClient.retrofit.searchMovie(apiKey = apiKey, query = movie.title)
-            .enqueue(object : Callback<MovieSearchResponse> {
-                override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
+        call.enqueue(object : Callback<MovieSearchResponse> {
+            override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
+                if (response.isSuccessful) {
                     val path = response.body()?.results?.firstOrNull()?.posterPath
-                    if (path != null) {
-                        tmdbImageUrl = "https://image.tmdb.org/t/p/w500$path"
-                    } else {
-                        tmdbImageUrl = null
-                    }
+                    val fullUrl = if (path != null) "https://image.tmdb.org/t/p/w500$path" else null
+
+                    tmdbImageUrl = fullUrl
+                    imageCache[movie.title] = fullUrl
+                } else {
+                    imageCache[movie.title] = null
                 }
-                override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
+            }
+            override fun onFailure(call: Call<MovieSearchResponse>, t: Throwable) {
+                if (!call.isCanceled) {
                     tmdbImageUrl = null
                 }
-            })
+            }
+        })
+
+        onDispose {
+            call.cancel()
+        }
     }
 
     Column(
