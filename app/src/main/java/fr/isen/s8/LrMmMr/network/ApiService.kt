@@ -16,7 +16,6 @@ interface ApiService {
         @Query("language") language: String = "fr-FR"
     ): Call<MovieSearchResponse>
 
-    // --- NOUVELLE REQUÊTE POUR LES VIDÉOS ---
     @GET("3/movie/{movie_id}/videos")
     fun getMovieVideos(
         @Path("movie_id") movieId: Int,

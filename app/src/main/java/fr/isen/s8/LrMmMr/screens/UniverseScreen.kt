@@ -34,7 +34,6 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
     var franchises by remember { mutableStateOf<List<FirebaseFranchise>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // On utilise une Map pour stocker les URLs des images récupérées par franchise
     val franchiseImages = remember { mutableStateMapOf<String, String>() }
     val apiKey = "a4a738325f5cd022e712c9b94a94f34a" // Utilisation de votre clé TMDB
 
