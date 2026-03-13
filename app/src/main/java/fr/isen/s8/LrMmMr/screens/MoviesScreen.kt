@@ -1,6 +1,7 @@
 package fr.isen.s8.LrMmMr.screens
 
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,13 +22,19 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
@@ -72,18 +79,56 @@ fun extractAllMovies(categories: List<FirebaseCategory>): List<Movie> {
     return allMovies
 }
 
+class MoviesViewModel : ViewModel() {
+    private val _rawMoviesList = MutableStateFlow<List<Movie>>(emptyList())
+    val rawMoviesList: StateFlow<List<Movie>> = _rawMoviesList.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // Le cache est dans le ViewModel pour survivre aux changements d'écrans !
+    val imageCache = mutableMapOf<String, String?>()
+
+    private var hasLoadedData = false
+
+    fun loadMoviesIfNeeded() {
+        if (hasLoadedData) return
+
+        val database = Firebase.database.reference.child("categories")
+        database.get().addOnSuccessListener { snapshot ->
+            val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
+            _rawMoviesList.value = extractAllMovies(categories).shuffled()
+            hasLoadedData = true
+            _isLoading.value = false
+        }.addOnFailureListener {
+            _isLoading.value = false
+            Log.e("MoviesViewModel", "Erreur Firebase", it)
+        }
+    }
+}
+
 @Composable
-fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
-    var rawMoviesList by remember { mutableStateOf<List<Movie>>(emptyList()) }
+fun AllMoviesScreen(
+    apiKey: String,
+    onMovieClick: (String) -> Unit
+) {
+    // 1. On récupère le contexte de l'application
+    val context = LocalContext.current
+
+    // 2. On attache le ViewModel à l'Activité Principale, et non plus à cet écran
+    val viewModel: MoviesViewModel = viewModel(viewModelStoreOwner = context as ComponentActivity)
+
+    val rawMoviesList by viewModel.rawMoviesList.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val imageCache = viewModel.imageCache // On utilise le cache du ViewModel
+
     var sortOrder by remember { mutableStateOf(MovieSortOrder.DEFAULT) }
-    var isLoading by remember { mutableStateOf(true) }
 
     val currentUser = FirebaseAuth.getInstance().currentUser
     var wantToWatchMovies by remember { mutableStateOf<List<String>>(emptyList()) }
     var watchedMovies by remember { mutableStateOf<List<String>>(emptyList()) }
 
     val gridState = rememberLazyGridState()
-    val imageCache = remember { mutableMapOf<String, String?>() }
 
     val sortedMovies = remember(rawMoviesList, sortOrder, wantToWatchMovies, watchedMovies) {
         when (sortOrder) {
@@ -98,15 +143,7 @@ fun AllMoviesScreen(apiKey: String, onMovieClick: (String) -> Unit) {
     }
 
     LaunchedEffect(Unit) {
-        val database = Firebase.database.reference.child("categories")
-        database.get().addOnSuccessListener { snapshot ->
-            val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
-            rawMoviesList = extractAllMovies(categories)
-            isLoading = false
-        }.addOnFailureListener {
-            isLoading = false
-            Log.e("AllMoviesScreen", "Erreur Firebase", it)
-        }
+        viewModel.loadMoviesIfNeeded()
     }
 
     DisposableEffect(currentUser?.uid) {
