@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,7 +73,7 @@ class MainActivity : ComponentActivity() {
                 unselectedIcon = Icons.Outlined.PlayArrow
             )
             val categoryItem = TabBarItem(
-                title = "Categories",
+                title = "Universes",
                 selectedIcon = Icons.AutoMirrored.Filled.List,
                 unselectedIcon = Icons.AutoMirrored.Outlined.List
             )
@@ -108,16 +107,13 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = movieItem.title
                         ) {
-                            // --- C'EST ICI QUE TOUT SE PASSE ---
                             composable(movieItem.title) {
                                 AllMoviesScreen(
                                     apiKey = myApiKey,
                                     onMovieClick = { clickedMovieTitle ->
-                                        // On prépare l'Intent vers la DetailledMovieActivity
                                         val intent = Intent(context, DetailledMovieActivity::class.java).apply {
                                             putExtra("MOVIE_TITLE", clickedMovieTitle)
                                         }
-                                        // On lance l'activité
                                         context.startActivity(intent)
                                     }
                                 )
