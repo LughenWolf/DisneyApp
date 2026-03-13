@@ -241,17 +241,16 @@ fun DetailledMovie(
 
     var selectedUser by remember { mutableStateOf<UserContact?>(null) }
 
-    // LE NOUVEAU POP-UP BEAUCOUP PLUS CLAIR ET LISIBLE
     if (selectedUser != null) {
         AlertDialog(
             onDismissRequest = { selectedUser = null },
-            containerColor = colorResource(R.color.egyptian_blue), // Fond foncé
+            containerColor = colorResource(R.color.egyptian_blue),
             titleContentColor = colorResource(R.color.baby_blue_ice),
             textContentColor = Color.White,
-            shape = RoundedCornerShape(24.dp), // Bords bien arrondis
+            shape = RoundedCornerShape(24.dp),
             title = {
                 Text(
-                    text = "✨ Contact Info",
+                    text = "Contact Info",
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 22.sp,
                     textAlign = TextAlign.Center,
