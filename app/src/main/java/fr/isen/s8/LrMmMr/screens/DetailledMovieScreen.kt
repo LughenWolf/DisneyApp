@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,6 @@ import fr.isen.s8.LrMmMr.components.GlassyInfoCard
 import fr.isen.s8.LrMmMr.components.CustomTopBar
 import fr.isen.s8.LrMmMr.managers.UserMovieManager
 
-// Structure de données pour stocker le pseudo et l'email du membre
 data class UserContact(val username: String, val email: String)
 
 @Composable
@@ -81,13 +81,10 @@ fun DetailledMovieScreen(
                     .enqueue(object : Callback<MovieSearchResponse> {
                         override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
                             val results = response.body()?.results
-
-                            // --- CORRECTIF TMDB : FILTRAGE PAR ANNÉE ---
                             val targetYear = found.year
                             val result = results?.firstOrNull { tmdbMovie ->
                                 tmdbMovie.releaseDate?.startsWith(targetYear) == true
-                            } ?: results?.firstOrNull() // Secours si l'année ne correspond pas
-                            // -------------------------------------------
+                            } ?: results?.firstOrNull()
 
                             if (result?.posterPath != null) {
                                 tmdbImageUrl = "https://image.tmdb.org/t/p/w500${result.posterPath}"
@@ -245,7 +242,6 @@ fun DetailledMovie(
     sellers: List<UserContact> = emptyList()
 ) {
     val context = LocalContext.current
-
     var selectedUser by remember { mutableStateOf<UserContact?>(null) }
 
     if (selectedUser != null) {
@@ -325,7 +321,6 @@ fun DetailledMovie(
             }
         )
     }
-    // ------------------------------------------
 
     Column(
         modifier = modifier
@@ -336,9 +331,11 @@ fun DetailledMovie(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         AsyncImage(
-            model = movie.imageUrl,
+            model = movie.imageUrl.ifEmpty { null },
             contentDescription = "Affiche du film ${movie.title}",
             contentScale = ContentScale.Crop,
+            error = painterResource(id = R.drawable.no_movies_images),
+            fallback = painterResource(id = R.drawable.no_movies_images),
             modifier = Modifier
                 .width(200.dp)
                 .height(300.dp)

@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -400,9 +401,11 @@ fun MovieGridItem(movie: Movie, apiKey: String, imageCache: MutableMap<String, S
                 )
         ) {
             AsyncImage(
-                model = tmdbImageUrl,
+                model = tmdbImageUrl?.ifEmpty { null },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                error = painterResource(id = R.drawable.no_movies_images),
+                fallback = painterResource(id = R.drawable.no_movies_images),
                 modifier = Modifier.fillMaxSize()
             )
 

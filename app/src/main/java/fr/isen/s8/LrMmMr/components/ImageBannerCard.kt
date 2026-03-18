@@ -74,14 +74,14 @@ fun ImageBannerCard(
             .clip(RoundedCornerShape(24.dp))
         ) {
 
-
             if (imageUrl != null) {
                 AsyncImage(
-                    model = imageUrl,
+                    model = imageUrl.ifEmpty { null },
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-
+                    error = painterResource(id = R.drawable.no_movies_images),
+                    fallback = painterResource(id = R.drawable.no_movies_images),
+                    modifier = Modifier.fillMaxSize()
                 )
             } else if (imageRes != null) {
                 Image(
@@ -90,8 +90,14 @@ fun ImageBannerCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.no_movies_images),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
-
 
             Box(
                 modifier = Modifier
@@ -109,7 +115,6 @@ fun ImageBannerCard(
                     )
             )
 
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -125,7 +130,6 @@ fun ImageBannerCard(
                         )
                     )
             )
-            
 
             Box(
                 modifier = Modifier
@@ -157,5 +161,3 @@ fun ImageBannerCard(
         }
     }
 }
-
-
