@@ -47,20 +47,22 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
         val database = Firebase.database.reference.child("categories")
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
-            
-            // On filtre pour ne garder que les franchises qui ont au moins une sous-saga avec des films
-            // OU au moins un film direct.
+
             val allFranchises = categories.flatMap { it.franchises }.filter { franchise ->
                 val hasDirectFilms = franchise.films?.isNotEmpty() == true
                 val hasValidSagas = franchise.sous_sagas?.any { it.films.isNotEmpty() } == true
                 hasDirectFilms || hasValidSagas
             }
-            
+
             franchises = allFranchises
             isLoading = false
 
             allFranchises.forEach { franchise ->
-                fetchFranchiseImage(franchise.nom, apiKey) { url ->
+                val firstFilm = franchise.films?.firstOrNull() ?: franchise.sous_sagas?.flatMap { it.films }?.firstOrNull()
+                val query = firstFilm?.titre ?: franchise.nom
+                val year = firstFilm?.annee?.toString()
+
+                fetchFranchiseImage(query, year, apiKey) { url ->
                     franchiseImages[franchise.nom] = url
                 }
             }
@@ -110,7 +112,11 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
                         var posterUrl by remember(franchise.nom) { mutableStateOf<String?>(null) }
 
                         LaunchedEffect(franchise.nom) {
-                            fetchFranchiseImage(franchise.nom, apiKey) { url ->
+                            val firstFilm = franchise.films?.firstOrNull() ?: franchise.sous_sagas?.flatMap { it.films }?.firstOrNull()
+                            val query = firstFilm?.titre ?: franchise.nom
+                            val year = firstFilm?.annee?.toString()
+
+                            fetchFranchiseImage(query, year, apiKey) { url ->
                                 posterUrl = url
                             }
                         }
@@ -121,8 +127,7 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 val validSagas = franchise.sous_sagas?.filter { it.films.isNotEmpty() } ?: emptyList()
-                                
-                                // Si une seule saga et pas de films directs, on skip l'écran de catégories
+
                                 if (validSagas.size == 1 && (franchise.films == null || franchise.films.isEmpty())) {
                                     val intent = Intent(context, SagaMoviesActivity::class.java).apply {
                                         putExtra("SAGA_NAME", validSagas[0].nom)
@@ -144,14 +149,19 @@ fun UniversesScreen(modifier: Modifier = Modifier, onComposing: (AppBarState) ->
     }
 }
 
-/**
- * Fonction pour chercher une image de "fond" ou un poster pour une franchise donnée
- */
-fun fetchFranchiseImage(query: String, apiKey: String, onResult: (String) -> Unit) {
+fun fetchFranchiseImage(query: String, year: String?, apiKey: String, onResult: (String) -> Unit) {
     ApiClient.retrofit.searchMovie(apiKey = apiKey, query = query)
         .enqueue(object : Callback<MovieSearchResponse> {
             override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
-                val path = response.body()?.results?.firstOrNull()?.posterPath
+                val results = response.body()?.results
+
+                val result = if (year != null) {
+                    results?.firstOrNull { it.releaseDate?.startsWith(year) == true } ?: results?.firstOrNull()
+                } else {
+                    results?.firstOrNull()
+                }
+
+                val path = result?.posterPath
                 if (path != null) {
                     onResult("https://image.tmdb.org/t/p/w500$path")
                 }

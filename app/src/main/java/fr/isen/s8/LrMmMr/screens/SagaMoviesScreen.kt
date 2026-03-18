@@ -35,12 +35,13 @@ fun SagaMoviesScreen(
     var moviesList by remember { mutableStateOf<List<Movie>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
+    val imageCache = remember { mutableMapOf<String, String?>() }
+
     LaunchedEffect(sagaName, franchiseName) {
         val database = Firebase.database.reference.child("categories")
         database.get().addOnSuccessListener { snapshot ->
             val categories = snapshot.children.mapNotNull { it.getValue<FirebaseCategory>() }
-            
-            // On cherche la franchise exacte, puis la sous-saga exacte à l'intérieur
+
             val filteredMovies = mutableListOf<Movie>()
             for (cat in categories) {
                 cat.franchises.find { it.nom == franchiseName }?.let { fran ->
@@ -107,7 +108,7 @@ fun SagaMoviesScreen(
                         MovieGridItem(
                             movie = movie,
                             apiKey = apiKey,
-                            imageCache = mutableMapOf<String, String?>(),
+                            imageCache = imageCache,
                             onClick = { onMovieClick(movie.title) }
                         )
                     }

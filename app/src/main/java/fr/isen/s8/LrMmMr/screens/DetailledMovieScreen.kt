@@ -43,7 +43,7 @@ import fr.isen.s8.LrMmMr.components.GlassyInfoCard
 import fr.isen.s8.LrMmMr.components.CustomTopBar
 import fr.isen.s8.LrMmMr.managers.UserMovieManager
 
-// NOUVEAU : Petite classe pour stocker les deux infos
+// Structure de données pour stocker le pseudo et l'email du membre
 data class UserContact(val username: String, val email: String)
 
 @Composable
@@ -80,7 +80,14 @@ fun DetailledMovieScreen(
                 ApiClient.retrofit.searchMovie(apiKey = apiKey, query = movieTitle)
                     .enqueue(object : Callback<MovieSearchResponse> {
                         override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
-                            val result = response.body()?.results?.firstOrNull()
+                            val results = response.body()?.results
+
+                            // --- CORRECTIF TMDB : FILTRAGE PAR ANNÉE ---
+                            val targetYear = found.year
+                            val result = results?.firstOrNull { tmdbMovie ->
+                                tmdbMovie.releaseDate?.startsWith(targetYear) == true
+                            } ?: results?.firstOrNull() // Secours si l'année ne correspond pas
+                            // -------------------------------------------
 
                             if (result?.posterPath != null) {
                                 tmdbImageUrl = "https://image.tmdb.org/t/p/w500${result.posterPath}"
@@ -281,7 +288,6 @@ fun DetailledMovie(
                         )
                     }
 
-                    // Une petite ligne de séparation discrète
                     HorizontalDivider(
                         modifier = Modifier.width(100.dp),
                         thickness = 1.dp,
@@ -319,6 +325,7 @@ fun DetailledMovie(
             }
         )
     }
+    // ------------------------------------------
 
     Column(
         modifier = modifier

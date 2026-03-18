@@ -11,5 +11,8 @@ data class MoviePreview(
     @SerializedName("id")
     val id: Int,
     @SerializedName("poster_path")
-    val posterPath: String?
+    val posterPath: String?,
+    // NOUVEAU : On récupère la date de sortie pour pouvoir filtrer !
+    @SerializedName("release_date")
+    val releaseDate: String?
 )

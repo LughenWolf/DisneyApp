@@ -37,7 +37,6 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -88,7 +87,6 @@ class MoviesViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // Le cache est dans le ViewModel pour survivre aux changements d'écrans !
     val imageCache = mutableMapOf<String, String?>()
 
     private var hasLoadedData = false
@@ -114,15 +112,12 @@ fun AllMoviesScreen(
     apiKey: String,
     onMovieClick: (String) -> Unit
 ) {
-    // 1. On récupère le contexte de l'application
     val context = LocalContext.current
-
-    // 2. On attache le ViewModel à l'Activité Principale, et non plus à cet écran
     val viewModel: MoviesViewModel = viewModel(viewModelStoreOwner = context as ComponentActivity)
 
     val rawMoviesList by viewModel.rawMoviesList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val imageCache = viewModel.imageCache // On utilise le cache du ViewModel
+    val imageCache = viewModel.imageCache
 
     var sortOrder by remember { mutableStateOf(MovieSortOrder.DEFAULT) }
 
@@ -350,7 +345,13 @@ fun MovieGridItem(movie: Movie, apiKey: String, imageCache: MutableMap<String, S
         call.enqueue(object : Callback<MovieSearchResponse> {
             override fun onResponse(call: Call<MovieSearchResponse>, response: Response<MovieSearchResponse>) {
                 if (response.isSuccessful) {
-                    val path = response.body()?.results?.firstOrNull()?.posterPath
+                    val results = response.body()?.results
+                    val targetYear = movie.year
+                    val result = results?.firstOrNull { tmdbMovie ->
+                        tmdbMovie.releaseDate?.startsWith(targetYear) == true
+                    } ?: results?.firstOrNull()
+
+                    val path = result?.posterPath
                     val fullUrl = if (path != null) "https://image.tmdb.org/t/p/w500$path" else null
 
                     tmdbImageUrl = fullUrl
@@ -405,7 +406,6 @@ fun MovieGridItem(movie: Movie, apiKey: String, imageCache: MutableMap<String, S
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Glassy Overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -422,7 +422,6 @@ fun MovieGridItem(movie: Movie, apiKey: String, imageCache: MutableMap<String, S
                     )
             )
 
-            // Inner Border Brillance
             Box(
                 modifier = Modifier
                     .fillMaxSize()
