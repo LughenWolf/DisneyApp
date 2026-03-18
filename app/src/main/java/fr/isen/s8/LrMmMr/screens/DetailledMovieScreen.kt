@@ -248,7 +248,6 @@ fun DetailledMovie(
 
     var selectedUser by remember { mutableStateOf<UserContact?>(null) }
 
-    // --- POP-UP (DIALOG) DE CONTACT STYLISÉ ---
     if (selectedUser != null) {
         AlertDialog(
             onDismissRequest = { selectedUser = null },
@@ -258,7 +257,7 @@ fun DetailledMovie(
             shape = RoundedCornerShape(24.dp),
             title = {
                 Text(
-                    text = "✨ Contact Info",
+                    text = "Contact Info",
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 22.sp,
                     textAlign = TextAlign.Center,
