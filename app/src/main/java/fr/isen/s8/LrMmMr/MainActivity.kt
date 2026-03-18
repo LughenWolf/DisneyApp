@@ -63,17 +63,17 @@ class MainActivity : ComponentActivity() {
             val appBarState = remember { mutableStateOf(AppBarState()) }
 
             val movieItem = TabBarItem(
-                title = "Movies",
+                title = "Films",
                 selectedIcon = Icons.Filled.PlayArrow,
                 unselectedIcon = Icons.Outlined.PlayArrow
             )
             val categoryItem = TabBarItem(
-                title = "Universes",
+                title = "Univers",
                 selectedIcon = Icons.AutoMirrored.Filled.List,
                 unselectedIcon = Icons.AutoMirrored.Outlined.List
             )
             val profileItem = TabBarItem(
-                title = "Profile",
+                title = "Profil",
                 selectedIcon = Icons.Filled.AccountCircle,
                 unselectedIcon = Icons.Outlined.AccountCircle
             )

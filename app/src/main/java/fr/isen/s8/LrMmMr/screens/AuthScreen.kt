@@ -72,7 +72,7 @@ fun AuthScreen(
 
             // --- TITRE DISNEY ---
             Text(
-                text = if (isRegistering) "Ready to join us ?" else "Welcome Back",
+                text = if (isRegistering) "Prêt à nous rejoindre ?" else "Bon retour parmis nous!",
                 fontFamily = disneyStyle,
                 fontSize = 42.sp,
                 color = colorResource(R.color.white)
@@ -96,7 +96,7 @@ fun AuthScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = if (isRegistering) "Register" else "Login",
+                        text = if (isRegistering) "S'enregistrer" else "Se connecter",
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Light,
@@ -125,7 +125,7 @@ fun AuthScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email", color = colorResource(R.color.pale_sky)) },
+                        label = { Text("adresse mail", color = colorResource(R.color.pale_sky)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -141,7 +141,7 @@ fun AuthScreen(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password", color = colorResource(R.color.pale_sky)) },
+                        label = { Text("Mot de passe ", color = colorResource(R.color.pale_sky)) },
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -190,17 +190,17 @@ fun AuthScreen(
                                             Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
                                         }
                                 } else {
-                                    Toast.makeText(context, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Remplissez tous les champs", Toast.LENGTH_SHORT).show()
                                 }
                             } else {
                                 if (cleanEmail.isNotEmpty() && password.isNotEmpty()) {
                                     auth.signInWithEmailAndPassword(cleanEmail, password)
                                         .addOnSuccessListener { onSuccess() }
                                         .addOnFailureListener { exception ->
-                                            Toast.makeText(context, exception.message ?: "Authentication failed", Toast.LENGTH_LONG).show()
+                                            Toast.makeText(context, exception.message ?: "Authentication Echouée", Toast.LENGTH_LONG).show()
                                         }
                                 } else {
-                                    Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Entrez un mail et un mot de passe ", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         },
@@ -211,7 +211,7 @@ fun AuthScreen(
                         )
                     ) {
                         Text(
-                            text = if (isRegistering) "CREATE ACCOUNT" else "SIGN IN",
+                            text = if (isRegistering) "Créer un compte" else "Se connecter",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -225,7 +225,7 @@ fun AuthScreen(
                 if (!isRegistering) username = ""
             }) {
                 Text(
-                    text = if (isRegistering) "Already a member? Sign In" else "New to the magic? Join us",
+                    text = if (isRegistering) "Dèja Membre? Connectez vous" else "Nouveau à la magie? Rejoignez nous",
                     color = colorResource(R.color.pale_sky),
                     fontSize = 14.sp
                 )

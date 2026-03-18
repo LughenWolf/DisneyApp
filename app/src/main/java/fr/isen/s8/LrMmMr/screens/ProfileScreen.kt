@@ -181,7 +181,7 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileContent(
-    userName: String, // MODIFIÉ: S'appelait userEmail avant
+    userName: String, 
     ownedMovies: List<String>,
     onRemoveMovie: (String) -> Unit,
     onMovieClick: (String) -> Unit,
@@ -228,7 +228,7 @@ fun ProfileContent(
             TextButton(onClick = onLogout) {
                 Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = colorResource(R.color.pale_sky))
                 Spacer(Modifier.width(8.dp))
-                Text("Logout", color = colorResource(R.color.pale_sky))
+                Text("Déconnexion", color = colorResource(R.color.pale_sky))
             }
         }
 
@@ -243,7 +243,7 @@ fun ProfileContent(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
                 Text(
-                    text = "MY COLLECTION",
+                    text = "MA COLLECTION",
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 14.sp,
                     letterSpacing = 2.sp,
@@ -258,7 +258,7 @@ fun ProfileContent(
 
                 if (ownedMovies.isEmpty()) {
                     Text(
-                        text = "Your collection is empty. Go add some magic! ✨",
+                        text = "Votre collection est vide. Allez ajouter des paillettes dans votre vie! ✨",
                         color = Color.White.copy(alpha = 0.7f),
                         fontSize = 14.sp,
                         modifier = Modifier.padding(vertical = 8.dp)
@@ -296,7 +296,7 @@ fun ProfileContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Filled.Delete,
-                                    contentDescription = "Remove from collection",
+                                    contentDescription = "Retirer de la collection",
                                     tint = colorResource(R.color.pale_sky)
                                 )
                             }

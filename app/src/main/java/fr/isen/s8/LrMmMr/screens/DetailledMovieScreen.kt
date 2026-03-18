@@ -253,7 +253,7 @@ fun DetailledMovie(
             shape = RoundedCornerShape(24.dp),
             title = {
                 Text(
-                    text = "Contact Info",
+                    text = "Infos de Contact",
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 22.sp,
                     textAlign = TextAlign.Center,
