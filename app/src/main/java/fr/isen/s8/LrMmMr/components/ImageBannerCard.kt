@@ -74,15 +74,14 @@ fun ImageBannerCard(
             .clip(RoundedCornerShape(24.dp))
         ) {
 
-            // L'image de fond
+
             if (imageUrl != null) {
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize(),
-                    error = painterResource(id = R.drawable.mcu),
-                    placeholder = painterResource(id = R.drawable.mcu)
+
                 )
             } else if (imageRes != null) {
                 Image(
@@ -93,7 +92,7 @@ fun ImageBannerCard(
                 )
             }
 
-            // Premier overlay : Ton dégradé de couleur (Baby Blue Ice)
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -104,13 +103,13 @@ fun ImageBannerCard(
                                 colorResource(id = R.color.saphire_sky).copy(alpha = 0.6f),
                                 colorResource(id = R.color.saphire_sky).copy(alpha = 0.0f)
                             ),
-                            start = Offset(0f, 0f), // On part de la gauche pour couvrir le texte
+                            start = Offset(0f, 0f),
                             end = Offset(950f, 400f)
                         )
                     )
             )
 
-            // Second overlay : L'effet "Glassy" sombre pour la profondeur
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -127,7 +126,7 @@ fun ImageBannerCard(
                     )
             )
             
-            // Effet de brillance supplémentaire (bordure interne)
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -159,11 +158,4 @@ fun ImageBannerCard(
     }
 }
 
-@Preview
-@Composable
-fun ImageBannerCardPreview() {
-    ImageBannerCard(
-        title = "MARVEL",
-        imageRes = R.drawable.mcu
-    )
-}
+
