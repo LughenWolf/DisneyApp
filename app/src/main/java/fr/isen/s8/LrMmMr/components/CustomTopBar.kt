@@ -75,10 +75,8 @@ fun CustomTopBar(
 
                 // Bouton Watched
                 IconButton(onClick = {
-                    onWatchClick() // On ajoute/retire de la liste des films vus
+                    onWatchClick()
 
-                    // Si on vient de marquer le film comme vu ET qu'il était dans "à voir",
-                    // on déclenche le clic sur "à voir" pour l'enlever de cette liste.
                     if (!isWatched && isWantToWatch) {
                         onWantToWatchClick()
                     }
@@ -90,7 +88,6 @@ fun CustomTopBar(
                     )
                 }
 
-                // Bouton Own
                 IconButton(onClick = onOwnClick) {
                     Icon(
                         imageVector = Icons.Filled.Inventory,
@@ -99,7 +96,6 @@ fun CustomTopBar(
                     )
                 }
 
-                // Bouton Delete (uniquement si possédé)
                 if (isOwn) {
                     IconButton(onClick = onDeleteClick) {
                         Icon(

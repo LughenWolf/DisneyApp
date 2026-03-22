@@ -60,7 +60,6 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // --- LOGO CHATEAU ---
             Icon(
                 painter = painterResource(id = R.drawable.ic_castle),
                 contentDescription = "Disney Castle",
@@ -70,7 +69,6 @@ fun AuthScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            // --- TITRE DISNEY ---
             Text(
                 text = if (isRegistering) "Prêt à nous rejoindre ?" else "Bon retour parmis nous!",
                 fontFamily = disneyStyle,
@@ -80,7 +78,6 @@ fun AuthScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            // --- CARD TRANSPARENTE (GLASSY FORM) ---
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(28.dp),
@@ -169,7 +166,6 @@ fun AuthScreen(
                                         .addOnSuccessListener { authResult ->
                                             val uid = authResult.user?.uid
                                             if (uid != null) {
-                                                // RETOUR À TA MÉTHODE QUI FONCTIONNE
                                                 val userRef = Firebase.database.reference
                                                     .child("users")
                                                     .child(uid)

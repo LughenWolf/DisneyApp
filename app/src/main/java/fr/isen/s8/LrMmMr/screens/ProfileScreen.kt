@@ -52,7 +52,7 @@ fun ProfileScreen(
     var currentUser by remember { mutableStateOf(auth.currentUser) }
 
     var ownedMovies by remember { mutableStateOf<List<String>>(emptyList()) }
-    // NOUVEAU: Variable d'état pour le pseudo
+
     var username by remember { mutableStateOf<String?>(null) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -70,7 +70,6 @@ fun ProfileScreen(
                 .child("users")
                 .child(currentUser!!.uid)
 
-            // Récupération des films
             userRef.child("own").addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val movies = snapshot.children.mapNotNull { it.key }
@@ -151,7 +150,6 @@ fun ProfileScreen(
                 }
             } else {
                 ProfileContent(
-                    // On affiche le pseudo. S'il n'existe pas, on affiche l'email. S'il n'y a pas d'email, "Disney Fan".
                     userName = username ?: currentUser?.email ?: "Disney Fan",
                     ownedMovies = ownedMovies,
                     onRemoveMovie = { movieTitle ->
@@ -211,7 +209,6 @@ fun ProfileContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Affichage du nom d'utilisateur
         Text(
             text = userName,
             fontSize = 22.sp,

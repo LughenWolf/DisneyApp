@@ -89,7 +89,6 @@ fun GlassyCard(value: String) {
     }
 }
 
-// --- COMPOSANT PELLICULE DE FILM AFFINÉ ---
 @Composable
 fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
     Box(
@@ -98,11 +97,10 @@ fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
             .shadow(4.dp, RoundedCornerShape(6.dp))
             .clip(RoundedCornerShape(6.dp))
             .background(Color.Black.copy(alpha = 0.85f))
-            .padding(vertical = 6.dp) // Padding extérieur réduit
+            .padding(vertical = 6.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            // Perforations du haut
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -118,30 +116,28 @@ fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp)) // Espacement réduit
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // Espace central avec le texte
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp)
                     .background(Color.DarkGray.copy(alpha = 0.5f), RoundedCornerShape(2.dp))
-                    .padding(vertical = 8.dp, horizontal = 12.dp), // Hauteur du cadre texte réduite
+                    .padding(vertical = 8.dp, horizontal = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = text,
                     color = Color.White,
-                    fontSize = 16.sp, // Police plus fine
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     letterSpacing = 1.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.dp)) // Espacement réduit
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // Perforations du bas
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -151,7 +147,7 @@ fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
                 repeat(16) {
                     Box(
                         modifier = Modifier
-                            .size(width = 8.dp, height = 10.dp) // Trous plus petits
+                            .size(width = 8.dp, height = 10.dp)
                             .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(2.dp))
                     )
                 }
