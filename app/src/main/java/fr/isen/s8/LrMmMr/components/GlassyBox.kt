@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -116,11 +114,10 @@ fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 6.dp, bottom = 6.dp)
                     .padding(horizontal = 12.dp)
                     .background(Color.DarkGray.copy(alpha = 0.5f), RoundedCornerShape(2.dp))
                     .padding(vertical = 8.dp, horizontal = 12.dp),
@@ -135,8 +132,6 @@ fun FilmStripCard(text: String, modifier: Modifier = Modifier) {
                     letterSpacing = 1.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(6.dp))
 
             Row(
                 modifier = Modifier

@@ -78,14 +78,14 @@ fun SagaMoviesScreen(
                         tint = Color.White
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = sagaName.uppercase(),
                     style = MaterialTheme.typography.headlineMedium.copy(
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
-                    )
+                    ),
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
 

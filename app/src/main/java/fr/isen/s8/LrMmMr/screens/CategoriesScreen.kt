@@ -85,14 +85,14 @@ fun CategoriesScreen(franchiseName: String, onBackClick: () -> Unit) {
                     tint = Color.White
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = franchiseName.uppercase(),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp
-                )
+                ),
+                modifier = Modifier.padding(start = 8.dp)
             )
         }
 

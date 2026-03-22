@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
@@ -58,28 +59,32 @@ fun AuthScreen(
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
+            Box(modifier = Modifier.padding(top = 40.dp))
+
             Icon(
                 painter = painterResource(id = R.drawable.ic_castle),
                 contentDescription = "Disney Castle",
-                modifier = Modifier.size(200.dp),
+                modifier = Modifier.size(160.dp),
                 tint = Color.Unspecified
             )
 
-            Spacer(Modifier.height(8.dp))
-
             Text(
-                text = if (isRegistering) "Prêt à nous rejoindre ?" else "Bon retour parmis nous!",
+                text = if (isRegistering) "Prêt à nous rejoindre ?" else "Bon retour parmi nous!",
                 fontFamily = disneyStyle,
-                fontSize = 42.sp,
-                color = colorResource(R.color.white)
+                fontSize = 38.sp,
+                color = colorResource(R.color.white),
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
             )
 
-            Spacer(Modifier.height(32.dp))
-
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = Color.White.copy(alpha = 0.15f)
@@ -93,21 +98,19 @@ fun AuthScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = if (isRegistering) "S'enregistrer" else "Se connecter",
+                        text = if (isRegistering) "S'ENREGISTRER" else "SE CONNECTER",
                         color = Color.White,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Light,
+                        fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp
                     )
-
-                    Spacer(Modifier.height(24.dp))
 
                     if (isRegistering) {
                         OutlinedTextField(
                             value = username,
                             onValueChange = { username = it },
-                            label = { Text("Username", color = colorResource(R.color.pale_sky)) },
-                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Nom d'utilisateur", color = colorResource(R.color.pale_sky)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = colorResource(R.color.baby_blue_ice),
@@ -116,31 +119,41 @@ fun AuthScreen(
                                 unfocusedTextColor = Color.White
                             )
                         )
-                        Spacer(Modifier.height(16.dp))
-                    }
-
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("adresse mail", color = colorResource(R.color.pale_sky)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = colorResource(R.color.baby_blue_ice),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Adresse mail", color = colorResource(R.color.pale_sky)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = colorResource(R.color.baby_blue_ice),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            )
                         )
-                    )
-
-                    Spacer(Modifier.height(16.dp))
+                    } else {
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Adresse mail", color = colorResource(R.color.pale_sky)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = colorResource(R.color.baby_blue_ice),
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            )
+                        )
+                    }
 
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Mot de passe ", color = colorResource(R.color.pale_sky)) },
+                        label = { Text("Mot de passe", color = colorResource(R.color.pale_sky)) },
                         visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = colorResource(R.color.baby_blue_ice),
@@ -150,11 +163,10 @@ fun AuthScreen(
                         )
                     )
 
-                    Spacer(Modifier.height(32.dp))
-
                     Button(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(top = 32.dp)
                             .height(56.dp),
                         onClick = {
                             val cleanEmail = email.trim()
@@ -193,10 +205,10 @@ fun AuthScreen(
                                     auth.signInWithEmailAndPassword(cleanEmail, password)
                                         .addOnSuccessListener { onSuccess() }
                                         .addOnFailureListener { exception ->
-                                            Toast.makeText(context, exception.message ?: "Authentication Echouée", Toast.LENGTH_LONG).show()
+                                            Toast.makeText(context, exception.message ?: "Authentification échouée", Toast.LENGTH_LONG).show()
                                         }
                                 } else {
-                                    Toast.makeText(context, "Entrez un mail et un mot de passe ", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Entrez un mail et un mot de passe", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         },
@@ -204,25 +216,28 @@ fun AuthScreen(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.baby_blue_ice),
                             contentColor = colorResource(R.color.egyptian_blue)
-                        )
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
                     ) {
                         Text(
                             text = if (isRegistering) "Créer un compte" else "Se connecter",
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-
-            TextButton(onClick = {
-                isRegistering = !isRegistering
-                if (!isRegistering) username = ""
-            }) {
+            TextButton(
+                onClick = {
+                    isRegistering = !isRegistering
+                    if (!isRegistering) username = ""
+                },
+                modifier = Modifier.padding(top = 16.dp, bottom = 24.dp)
+            ) {
                 Text(
-                    text = if (isRegistering) "Dèja Membre? Connectez vous" else "Nouveau à la magie? Rejoignez nous",
-                    color = colorResource(R.color.pale_sky),
+                    text = if (isRegistering) "Déjà membre ? Connectez-vous" else "Nouveau ici ? Rejoignez-nous",
+                    color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp
                 )
             }

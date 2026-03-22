@@ -354,8 +354,7 @@ fun DetailledMovie(
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.padding(top = 8.dp)
             ) {
-                Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = colorResource(R.color.egyptian_blue))
-                Spacer(Modifier.width(8.dp))
+                Icon(Icons.Filled.PlayArrow, contentDescription = "Play", tint = colorResource(R.color.egyptian_blue), modifier = Modifier.padding(end = 8.dp))
                 Text("Voir le Trailer", color = colorResource(R.color.egyptian_blue), fontWeight = FontWeight.Bold)
             }
         }
@@ -387,14 +386,13 @@ fun DetailledMovie(
         }
 
         if (owners.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Ils l'ont dans leur collection :",
                 color = colorResource(R.color.baby_blue_ice),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
             )
             owners.forEach { contact ->
                 Box(
@@ -409,14 +407,13 @@ fun DetailledMovie(
         }
 
         if (sellers.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Ils veulent s'en débarrasser :",
                 color = colorResource(R.color.baby_blue_ice),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             )
             sellers.forEach { contact ->
                 Box(
@@ -430,6 +427,6 @@ fun DetailledMovie(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Box(modifier = Modifier.padding(bottom = 32.dp))
     }
 }

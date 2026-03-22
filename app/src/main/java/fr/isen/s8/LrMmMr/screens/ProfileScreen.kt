@@ -81,7 +81,6 @@ fun ProfileScreen(
                 }
             })
 
-            // NOUVEAU: Récupération du pseudo
             userRef.child("username").addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     username = snapshot.getValue(String::class.java)
@@ -124,18 +123,17 @@ fun ProfileScreen(
         ) {
             if (currentUser == null) {
                 Text(
-                    text = "Unlock the Magic",
+                    text = "Débloquez la Magie",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Sign in to see your collection",
+                    text = "Connectez-vous pour voir votre collection",
                     color = colorResource(R.color.pale_sky),
-                    fontSize = 16.sp
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
-                Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = {
@@ -144,9 +142,10 @@ fun ProfileScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                     elevation = null,
-                    contentPadding = PaddingValues(0.dp)
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.padding(top = 32.dp)
                 ) {
-                    GlassyCardTag("Login / Register")
+                    GlassyCardTag("Se connecter / S'inscrire")
                 }
             } else {
                 ProfileContent(
@@ -187,10 +186,8 @@ fun ProfileContent(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(top = 40.dp)
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
-
         Box(
             modifier = Modifier
                 .size(130.dp)
@@ -207,32 +204,31 @@ fun ProfileContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = userName,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.padding(top = 16.dp)
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             TextButton(onClick = onLogout) {
-                Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null, tint = colorResource(R.color.pale_sky))
-                Spacer(Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout, 
+                    contentDescription = null, 
+                    tint = colorResource(R.color.pale_sky),
+                    modifier = Modifier.padding(end = 8.dp)
+                )
                 Text("Déconnexion", color = colorResource(R.color.pale_sky))
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White.copy(alpha = 0.12f)
@@ -278,12 +274,12 @@ fun ProfileContent(
                                     .padding(vertical = 4.dp, horizontal = 4.dp)
                             ) {
                                 Text("✨", fontSize = 12.sp)
-                                Spacer(Modifier.width(12.dp))
                                 Text(
                                     text = movie,
                                     color = Color.White,
                                     fontSize = 17.sp,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(start = 12.dp)
                                 )
                             }
 
@@ -303,6 +299,6 @@ fun ProfileContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Box(modifier = Modifier.padding(bottom = 40.dp))
     }
 }
